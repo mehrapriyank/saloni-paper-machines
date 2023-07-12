@@ -1,25 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext} from "react";
 import { ProjectTableCard, ProductTableCard, ToOrderProjectTableCard } from "../../components/table-card/table-card.component";
 import { useRef } from "react";
+import { UserContext } from "../../contexts/user.context";
 export const InventoryDashboard = () => {
   const inventory = useRef([]);
   const [projects, setProjects] = useState([]);
   const [poCount, setPOCount] = useState([]);
   const [products, setProducts] = useState([]);
   const [layout, setLayout] = useState("projects");
+  const {currentUser} = useContext(UserContext);
+  
   useEffect(() => {
     ( async () => {
-      const urlRequest = "http://127.0.0.1:80/spm/get_dashboard_items";
-      const response =  await fetch(urlRequest, {
-        method: 'get', mode: 'cors', contentType: 'application/json',
-      });
-      const response_data = await response.json();
-      inventory.current = response_data;
-      
-      setProducts(response_data["products"]);
-      setProjects(response_data["projects"]);
-      setPOCount(response_data["po"]);
-      console.log(response_data);
+      if (currentUser){
+        const urlRequest = "http://127.0.0.1:80/spm/get_dashboard_items";
+        const response =  await fetch(urlRequest, {
+          method: 'get', mode: 'cors', contentType: 'application/json',
+        });
+        const response_data = await response.json();
+        inventory.current = response_data;
+        
+        setProducts(response_data["products"]);
+        setProjects(response_data["projects"]);
+        setPOCount(response_data["po"]);
+        console.log(response_data);
+      }
     }
     )()
   }, [])
@@ -27,6 +32,10 @@ export const InventoryDashboard = () => {
   const layoutHandler = (event) => {
     const newLayout = event.currentTarget.id.split("_")[0];
     setLayout(newLayout);
+  }
+
+  if (!currentUser){
+    return ("");
   }
   return (
     <div className="content-page">

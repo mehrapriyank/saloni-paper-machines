@@ -20,6 +20,47 @@ CORS(app)
 app = Flask(__name__, template_folder='.')
 app.secret_key = "3934d693ff3df8d7228dda5972002da4"
 
+@app.route('/spm/login', methods = ["GET"])
+def login():
+  try:
+    email = request.args.get("email", None)
+    passphrase = request.args.get("password", None)
+    logging.info("Request params: "+str(request.args))
+    result = {}
+    if email and passphrase:
+      query = """select name, email, designation, is_admin, employee_id from users where email = %s and login_pass = %s"""
+      query_result = DBUtil().execute_query(query, (email,passphrase,))
+
+      if len(query_result):
+        name = query_result[0].get("name", "")
+        email = query_result[0].get("email", "")
+        designation = query_result[0].get("designation", "")
+        is_admin = query_result[0].get("is_admin", "")
+        employee_id = query_result[0].get("employee_id", "")
+        result = {
+          "login": "1",
+          "name": name,
+          "designation": designation,
+          "email": email,
+          "is_admin": is_admin,
+          "id": employee_id
+        }
+      else:
+        result = {
+          "login": "0"
+        }
+    else:
+      logging.error("Data not sufficient...")
+    
+    response = Response(json.dumps(result, default= str))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    logging.info("Result: "+str(response))
+    return response
+  except Exception as e:
+    logging.info(e)
+    raise e
+
+
 # ---------- create project ----------
 def add_new_project(project_name, created_by):
   try:
