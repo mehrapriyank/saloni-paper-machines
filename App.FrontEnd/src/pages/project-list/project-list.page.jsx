@@ -12,7 +12,7 @@ export const ProjectList = () => {
 
   useEffect(() => {
     ( async () => {
-      const urlRequest = "http://127.0.0.1:80/spm/get_project_agg";
+      const urlRequest = "http://192.168.1.4:80/spm/get_project_agg";
       const response =  await fetch(urlRequest, {
         method: 'get', mode: 'cors', contentType: 'application/json',
       });

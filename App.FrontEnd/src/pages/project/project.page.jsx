@@ -21,7 +21,7 @@ export const Project = () => {
   const [originalList, setOriginalList] = useState([]);
   useEffect(() => {
     ( async () => {
-      const urlRequest = "http://127.0.0.1:80/spm/get_project_items?" + new URLSearchParams({
+      const urlRequest = "http://192.168.1.4:80/spm/get_project_items?" + new URLSearchParams({
         "project_name": project
       });
       const response =  await fetch(urlRequest, {
@@ -78,7 +78,7 @@ export const Project = () => {
       "updated_by": 1
     }
     console.log(data);
-    const urlRequest = "http://127.0.0.1:80/spm/update_project";
+    const urlRequest = "http://192.168.1.4:80/spm/update_project";
     const response = await fetch(urlRequest, {
         headers: new Headers({'content-type': 'application/json'}),
         method: 'POST',

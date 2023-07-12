@@ -31,7 +31,7 @@ export const CreateOrderForm = () => {
   const [projectOptions, setProjectOptions] = useState([]);
   useEffect( () => {
     ( async () => {
-      const urlRequest = "http://127.0.0.1:80/spm/get_project_agg";
+      const urlRequest = "http://192.168.1.4:80/spm/get_project_agg";
       const response =  await fetch(urlRequest, {
         method: 'get', mode: 'cors', contentType: 'application/json',
       });
@@ -91,7 +91,7 @@ export const CreateOrderForm = () => {
       "created_by": 1
     }
     console.log(data);
-    const urlRequest = "http://127.0.0.1:80/spm/create_order";
+    const urlRequest = "http://192.168.1.4:80/spm/create_order";
     const response =  await fetch(urlRequest, {
         headers: new Headers({'content-type': 'application/json'}),
         method: 'POST',

@@ -19,7 +19,7 @@ export const UpdateOrderForm = () => {
   useEffect( ()=> {
 
       ( async () => {
-        const urlRequest = "http://127.0.0.1:80/spm/get_purchase_orders";
+        const urlRequest = "http://192.168.1.4:80/spm/get_purchase_orders";
         const response =  await fetch(urlRequest, {
           method: 'get', mode: 'cors', contentType: 'application/json',
         });
@@ -40,7 +40,7 @@ export const UpdateOrderForm = () => {
   const onPOChange = async (selected) => {
     if (selected){
       setPONumber(selected.value);
-      const urlRequest = "http://127.0.0.1:80/spm/get_order_details?" + new URLSearchParams({
+      const urlRequest = "http://192.168.1.4:80/spm/get_order_details?" + new URLSearchParams({
         "po_number": selected.value
       });
       const response =  await fetch(urlRequest, {
@@ -130,7 +130,7 @@ export const UpdateOrderForm = () => {
       "bill": bill
     }
     console.log(data);
-    const urlRequest = "http://127.0.0.1:80/spm/recieve_order";
+    const urlRequest = "http://192.168.1.4:80/spm/recieve_order";
     const response =  await fetch(urlRequest, {
         headers: new Headers({'content-type': 'application/json'}),
         method: 'POST',

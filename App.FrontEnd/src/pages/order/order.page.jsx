@@ -38,7 +38,7 @@ export const Order = () => {
 
   useEffect( () => {
     ( async () => {
-      const urlRequest = "http://127.0.0.1:80/spm/get_project_agg";
+      const urlRequest = "http://192.168.1.4:80/spm/get_project_agg";
       const response =  await fetch(urlRequest, {
         method: 'get', mode: 'cors', contentType: 'application/json',
       });
@@ -65,7 +65,7 @@ export const Order = () => {
       setProjectOptions(project_options);
       console.log("project option: ", project_options);
 
-      const ourlRequest = "http://127.0.0.1:80/spm/get_order_details?" + new URLSearchParams({
+      const ourlRequest = "http://192.168.1.4:80/spm/get_order_details?" + new URLSearchParams({
         "po_number": poNumber
       });
       const oresponse =  await fetch(ourlRequest, {
@@ -118,7 +118,7 @@ export const Order = () => {
       "updated_by": 1
     }
     console.log(data);
-    const urlRequest = "http://127.0.0.1:80/spm/update_order";
+    const urlRequest = "http://192.168.1.4:80/spm/update_order";
     const response =  await fetch(urlRequest, {
         headers: new Headers({'content-type': 'application/json'}),
         method: 'POST',

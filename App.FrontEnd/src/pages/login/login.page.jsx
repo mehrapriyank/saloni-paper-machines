@@ -20,7 +20,7 @@ export const LoginPage = () => {
         e.preventDefault();
         console.log("submitted: ", [userEmail, userPass])
         if (userEmail && userPass) {
-            const urlRequest = "http://127.0.0.1:80/spm/login?" + new URLSearchParams({
+            const urlRequest = "http://192.168.1.4:80/spm/login?" + new URLSearchParams({
                 "email": userEmail,
                 "password": userPass
             });
