@@ -38,6 +38,7 @@
     "flatpickr": "^4.6.9",
     "frappe-gantt": "^0.6.0",
     "fullcalendar": "^5.10.2",
+    "gh-pages": "^5.0.0",
     "gmaps": "^0.4.25",
     "handlebars": "^4.7.7",
     "highlightjs": "^9.16.2",
@@ -73,7 +74,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy" : "npm run build",
+    "deploy" : "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
