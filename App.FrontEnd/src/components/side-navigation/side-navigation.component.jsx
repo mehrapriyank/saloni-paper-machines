@@ -28,7 +28,7 @@ const SideNavigaiton = () => {
                   <li className="side-nav-title">Navigation</li>
 
                   <li id="home" className={`side-nav-item ${selectedPage.includes('home')?  "menuitem-active": ""}`} onClick={onClickHandler}>
-                      <Link className="side-nav-link" to="/">
+                      <Link className="side-nav-link" to="/dashboard">
                           <i className="uil-home-alt"></i>
                           <span> Dashboard </span>
                       </Link>

@@ -1,10 +1,27 @@
 
 import Logo from '../../assets/images/logo.png';
 import ProfilePhoto from '../../assets/images/avatar-10.jpg'
-import { Fragment } from 'react';
-import { Link, Outlet } from "react-router-dom"
+import { Fragment, useContext, useEffect } from 'react';
+import { Link, Outlet, useNavigate } from "react-router-dom"
+import { UserContext } from '../../contexts/user.context';
 
 const TopNavigation = () => {
+    const {currentUser, setCurrentUser} = useContext(UserContext);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        ( async () => {
+            if (!currentUser)
+                navigate('/login');
+        }
+        )()
+      }, [])
+
+    const logout = async () => {
+        await setCurrentUser(null);
+        navigate("/login")
+    }
+
     const onMenuclick = () => {
         document.getElementsByTagName("html")[0].dataset.sidenavSize = 
             document.getElementsByTagName("html")[0].dataset.sidenavSize=== "condensed"? "default":"condensed";
@@ -38,8 +55,8 @@ const TopNavigation = () => {
                                 <img src={ProfilePhoto} alt="user-image" width="32" className="rounded-circle"/>
                             </span>
                             <span className="d-lg-flex flex-column gap-1 d-none">
-                                <h5 className="my-0">Saloni Sharma</h5>
-                                <h6 className="my-0 fw-normal">Executive Director</h6>
+                                <h5 className="my-0">{currentUser?.name}</h5>
+                                <h6 className="my-0 fw-normal">{currentUser?.designation}</h6>
                             </span>
                         </a>
                         <div className="dropdown-menu dropdown-menu-end dropdown-menu-animated profile-dropdown">
@@ -49,15 +66,15 @@ const TopNavigation = () => {
                             </div>
 
                             
-                            <a href="#" className="dropdown-item">
+                            {/* <a href="#" className="dropdown-item">
                                 <i className="mdi mdi-account-circle me-1"></i>
                                 <span>My Profile</span>
-                            </a>
+                            </a> */}
 
-                            <a href="#" className="dropdown-item">
+                            <button href="#" className="dropdown-item" onClick={logout}>
                                 <i className="mdi mdi-logout me-1"></i>
                                 <span>Logout</span>
-                            </a>
+                            </button>
                         </div>
                     </li>
                 </ul>

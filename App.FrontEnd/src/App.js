@@ -7,28 +7,35 @@ import { UpdateOrderPage } from './pages/update-order/update-order.page';
 import { CreateProjectPage } from './pages/create-project/create-project.page';
 import { ProjectRoute } from './routes/projects/projects.route';
 import { OrderRoute } from './routes/orders/orders.route';
+import { LoginPage } from './pages/login/login.page';
+import { UserContext } from './contexts/user.context';
+import { useContext } from 'react';
 
 function App() {
-  const url = window.location.href.split('/')
-  const projectID = url[url.length-1];
+  const {currentUser} = useContext(UserContext);
   return (
     <Routes>
+      <Route path="/login" element={<LoginPage/>}> </Route>
       <Route path='/' element={<TopNavigation></TopNavigation>}>
-        <Route path='/' element={<SideNavigaiton/>}>
-          <Route index element={<InventoryDashboard/>}>
+        { currentUser && 
+          <Route path='' element={<SideNavigaiton/>}>
+            <Route path="/dashboard" element={<InventoryDashboard/>}>
+            </Route>
+            <Route path="projects/*" element={<ProjectRoute/>}>
+            </Route>
+            <Route path="orders/*" element={<OrderRoute/>}>
+            </Route>
+            <Route path='create-project' element={<CreateProjectPage/>}>
+            </Route>
+            <Route path='create-order' element={<CreateOrderPage/>}>
+            </Route>
+            <Route path='update-order' element={<UpdateOrderPage/>}>
+            </Route>
           </Route>
-          <Route path="projects/*" element={<ProjectRoute/>}>
-          </Route>
-          <Route path="orders/*" element={<OrderRoute/>}>
-          </Route>
-          <Route path='create-project' element={<CreateProjectPage/>}>
-          </Route>
-          <Route path='create-order' element={<CreateOrderPage/>}>
-          </Route>
-          <Route path='update-order' element={<UpdateOrderPage/>}>
-          </Route>
-        </Route>
+        }
+        
       </Route>
+     
     </Routes>
   )
 }
