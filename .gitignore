@@ -128,3 +128,4 @@ dist
 
 #python cache
 __pycache__
+.DS_Store
