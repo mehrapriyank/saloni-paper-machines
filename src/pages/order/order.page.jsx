@@ -4,6 +4,8 @@ import 'react-bootstrap/'
 import "react-datepicker/dist/react-datepicker.css";
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { UserContext } from '../../contexts/user.context';
+import { useContext } from 'react';
 
 function removeDup(arr) {
   let result = []
@@ -12,6 +14,7 @@ function removeDup(arr) {
 }
 
 export const Order = () => {
+  const {currentUser} = useContext(UserContext);
   const project_dict = {};
   const [orderDetails, setorderDetails] = useState([]);
   const [isInputValid, setIsInputValid] = useState(true);
@@ -115,7 +118,7 @@ export const Order = () => {
       "po_number": poNumber, 
       "orderDetails": orderDetails.filter((item) => item.isUpdated === true),
       "updated_on": Date.now(),
-      "updated_by": 1
+      "updated_by": currentUser.id
     }
     console.log(data);
     const urlRequest = "http://192.168.1.4:80/spm/update_order";

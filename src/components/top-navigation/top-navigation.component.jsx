@@ -1,8 +1,7 @@
 
 import Logo from '../../assets/images/logo.png';
-import ProfilePhoto from '../../assets/images/avatar-10.jpg'
 import { Fragment, useContext, useEffect } from 'react';
-import { Link, Outlet, useNavigate } from "react-router-dom"
+import { Outlet, useNavigate } from "react-router-dom"
 import { UserContext } from '../../contexts/user.context';
 
 const TopNavigation = () => {
@@ -15,7 +14,7 @@ const TopNavigation = () => {
                 navigate('/login');
         }
         )()
-      }, [])
+      }, [currentUser, navigate])
 
     const logout = async () => {
         await setCurrentUser(null);
@@ -51,9 +50,6 @@ const TopNavigation = () => {
             
                     <li className="dropdown">
                         <a className="nav-link dropdown-toggle arrow-none nav-user px-2" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
-                            <span className="account-user-avatar">
-                                <img src={ProfilePhoto} alt="user-image" width="32" className="rounded-circle"/>
-                            </span>
                             <span className="d-lg-flex flex-column gap-1 d-none">
                                 <h5 className="my-0">{currentUser?.name}</h5>
                                 <h6 className="my-0 fw-normal">{currentUser?.designation}</h6>

@@ -1,7 +1,10 @@
 import 'react-bootstrap/'
 import { Form } from 'react-bootstrap';
 import { useState } from 'react';
+import { UserContext } from '../../contexts/user.context';
+import { useContext } from 'react';
 export const ProjectMasterListForm = () => {
+  const {currentUser} = useContext(UserContext);
   const empty_product = {
     "product_type": "",
     "product_id": "",
@@ -56,7 +59,7 @@ export const ProjectMasterListForm = () => {
     const data = {
       "project_name": projectName,
       "project_details": productList,
-      "created_by": 1,
+      "created_by": currentUser.id,
     }
     console.log(data);
     const urlRequest = "http://192.168.1.4:80/spm/create_project";

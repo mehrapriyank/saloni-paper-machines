@@ -1,11 +1,12 @@
 
+import { useContext } from 'react';
 import { Fragment, useState } from 'react';
-import profilePhoto from '../../assets/images/avatar-10.jpg';
 import { Link, Outlet } from "react-router-dom"
+import { UserContext } from '../../contexts/user.context';
 
 const SideNavigaiton = () => {
     const url = window.location.href.split('/')
-    
+    const {currentUser} = useContext(UserContext);
     const [selectedPage, setSelectedPage] = useState(url[url.length-1] || "home") ;
 
     const onClickHandler = (event) => {
@@ -18,10 +19,7 @@ const SideNavigaiton = () => {
           <div className="h-100" id="leftside-menu-container" data-simplebar>
               
               <div className="leftbar-user">
-                  <a href="pages-profile.html">
-                      <img src={profilePhoto} alt = "" height="42" className="rounded-circle shadow-sm"/>
-                      <span className="leftbar-user-name mt-2">Saloni Sharma</span>
-                  </a>
+                  <h4 className="leftbar-user-name mt-2">{currentUser.name}</h4>
               </div>
 
               <ul className="side-nav">

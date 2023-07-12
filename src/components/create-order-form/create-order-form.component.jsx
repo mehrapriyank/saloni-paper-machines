@@ -4,6 +4,8 @@ import 'react-bootstrap/'
 import "react-datepicker/dist/react-datepicker.css";
 // import 'bootstrap-datepicker/css/bootstrap-datepicker.min.css';
 import { useEffect, useRef, useState } from 'react';
+import { useContext } from 'react';
+import { UserContext } from '../../contexts/user.context';
 
 function removeDup(arr) {
   let result = []
@@ -11,6 +13,7 @@ function removeDup(arr) {
   return result;
 }
 export const CreateOrderForm = () => {
+  const {currentUser} = useContext(UserContext);
   const project_dict = {};
   const empty_product = {
     "project_id" : "",
@@ -88,7 +91,7 @@ export const CreateOrderForm = () => {
     const data = {
       "poNumber": poNumber,
       "productList": productList,
-      "created_by": 1
+      "created_by": currentUser.id
     }
     console.log(data);
     const urlRequest = "http://192.168.1.4:80/spm/create_order";

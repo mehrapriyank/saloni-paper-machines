@@ -1,9 +1,11 @@
 import { useState, useEffect} from 'react';
 import { useParams } from 'react-router-dom';
 import { Form } from 'react-bootstrap';
-import { timeDay } from 'd3';
+import { UserContext } from '../../contexts/user.context';
+import { useContext } from 'react';
 
 export const Project = () => {
+  const {currentUser} = useContext(UserContext);
   const { project} = useParams();
   const [projectDetails, setProjectDetails] = useState([]);
   const [editProject, setEditProject ] = useState(false);
@@ -75,7 +77,7 @@ export const Project = () => {
       "project_name": project,
       "project_details": projectDetails.filter((item) => item.isUpdated === true),
       "updated_on": Date.now(),
-      "updated_by": 1
+      "updated_by": currentUser.id
     }
     console.log(data);
     const urlRequest = "http://192.168.1.4:80/spm/update_project";
