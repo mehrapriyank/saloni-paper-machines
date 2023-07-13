@@ -133,19 +133,19 @@ export const Project = () => {
                                 
                                 <div className="col-xl-2 mb-3 col-auto">
                                     <label htmlFor="product_type" className="form-label">Product Type</label>
-                                    <Form.Control name='product_type' type="text" placeholder="Product" value={product_type} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject || project_comp_id}/>
+                                    <Form.Control name='product_type' className={ editProject && !project_comp_id ? "border border-primary" : ""} type="text" placeholder="Product" value={product_type} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject || project_comp_id}/>
                                 </div>
                                 <div className="col-xl-2 mb-3 col-auto">
                                     <label htmlFor="product_id" className="form-label">Product Code</label>
-                                    <Form.Control name='product_id' type="text" placeholder="Product ID" value={product_id} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject || project_comp_id}/>
+                                    <Form.Control name='product_id' className={ editProject && !project_comp_id ? "border border-primary" : ""} type="text" placeholder="Product ID" value={product_id} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject || project_comp_id}/>
                                 </div>
                                 <div className="col-xl-2 mb-3 col-auto">
                                   <label htmlFor="required_quantity" className="form-label">Required Quantity</label>
-                                  <Form.Control name='required_quantity' type="text" placeholder="Req Quantity" value={required_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
+                                  <Form.Control name='required_quantity' className={ editProject ? 'border border-primary' : ""} type="text" placeholder="Req Quantity" value={required_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
                                 </div>
                                 <div className="col-xl-2 mb-3 col-auto">
                                     <label className="form-label">Required By Date</label>
-                                    <Form.Control name='required_by_date' type="date" placeholder="Required By" value={required_by_date} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
+                                    <Form.Control name='required_by_date' className={ editProject ? 'border border-primary' : ""} type="date" placeholder="Required By" value={required_by_date} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
                                     {/* <p name='required_by_date'> {required_by_date}</p> */}
                                 </div>
                                 {

@@ -218,12 +218,12 @@ export const Order = () => {
                                       <Form.Control className={ !editOrder || validProductCode ? '' : "border border-danger"} name='product_id' type="text" placeholder="Code" value={product_id} onChange={(e) => handleFormChange(e, index)} readOnly={!editOrder || order_comp_id}/>
                                   </div>
                                   <div className="col-xl-2 mb-3 col-auto">
-                                    <label htmlFor="quantitiy" className="form-label">Ordered Quantity</label>
-                                    <Form.Control name='ordered_quantity' type="text" placeholder="Quantity" value={ordered_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editOrder}/>
+                                    <label htmlFor="ordered_quantity" className="form-label">Ordered Quantity</label>
+                                    <Form.Control name='ordered_quantity' className={ !editOrder? '' : "border border-primary"} type="text" placeholder="Quantity" value={ordered_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editOrder}/>
                                   </div>
                                   <div className="col-xl-2 mb-3 col-auto">
-                                    <label className="form-label">Delivery Date</label>
-                                    <Form.Control name='expected_delivery' type="date" placeholder="Expected By" value={expected_delivery} onChange={(e) => handleFormChange(e, index)} readOnly={!editOrder}/>
+                                    <label htmlFor="expected_delivery" className="form-label">Delivery Date</label>
+                                    <Form.Control name='expected_delivery' className={ !editOrder? '' : "border border-primary"} type="date" placeholder="Expected By" value={expected_delivery} onChange={(e) => handleFormChange(e, index)} readOnly={!editOrder}/>
                                   </div>
                                   {
                                     editOrder && orderDetails.length > 1 && !order_comp_id ? (
