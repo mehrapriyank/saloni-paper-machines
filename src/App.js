@@ -17,22 +17,22 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage/>}> </Route>
       <Route path='/' element={<TopNavigation></TopNavigation>}>
-        { currentUser && 
-          <Route path='' element={<SideNavigaiton/>}>
-            <Route path="/dashboard" element={<InventoryDashboard/>}>
-            </Route>
-            <Route path="projects/*" element={<ProjectRoute/>}>
-            </Route>
-            <Route path="orders/*" element={<OrderRoute/>}>
-            </Route>
-            <Route path='create-project' element={<CreateProjectPage/>}>
-            </Route>
-            <Route path='create-order' element={<CreateOrderPage/>}>
-            </Route>
-            <Route path='update-order' element={<UpdateOrderPage/>}>
-            </Route>
+        
+        <Route path='' element={<SideNavigaiton/>}>
+          <Route path="/dashboard" element={<InventoryDashboard/>}>
           </Route>
-        }
+          <Route path="projects/*" element={<ProjectRoute/>}>
+          </Route>
+          <Route path="orders/*" element={<OrderRoute/>}>
+          </Route>
+          <Route path='create-project' element={<CreateProjectPage/>}>
+          </Route>
+          <Route path='create-order' element={<CreateOrderPage/>}>
+          </Route>
+          <Route path='update-order' element={<UpdateOrderPage/>}>
+          </Route>
+        </Route>
+        
         
       </Route>
      

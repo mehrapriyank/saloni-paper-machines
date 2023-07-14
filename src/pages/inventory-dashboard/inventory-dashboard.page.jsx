@@ -13,7 +13,7 @@ export const InventoryDashboard = () => {
   useEffect(() => {
     ( async () => {
       if (currentUser){
-        const urlRequest = "http://192.168.1.4:80/spm/get_dashboard_items";
+        const urlRequest = "http://127.0.0.1:80/spm/get_dashboard_items";
         const response =  await fetch(urlRequest, {
           method: 'get', mode: 'cors', contentType: 'application/json',
         });

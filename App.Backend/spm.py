@@ -81,8 +81,8 @@ def add_new_project(project_name, created_by):
 
 def add_new_project_items(data):
   if data:
-    query = """ insert into project_master_list (project_id, product_type, product_id, required_quantity, required_by_date) 
-                values (%s, %s, %s, %s, %s)"""
+    query = """ insert into project_master_list (project_id, product_type, product_id, required_quantity, required_by_date, quantity_type) 
+                values (%s, %s, %s, %s, %s, %s)"""
     DBUtil().execute_query(query, data, executemany=True, commit=True)
     logging.info("Added items to Project Master List Successfully...")
 
@@ -105,8 +105,9 @@ def create_project():
         required_by_date = productDetail.get("required_by_date", "")
         product_type = productDetail.get("product_type", "")
         product_id = productDetail.get("product_id", "")
+        quantity_type = productDetail.get("quantity_type", "")
 
-        data.append((project_id, product_type, product_id, required_quantity, required_by_date))
+        data.append((project_id, product_type, product_id, required_quantity, required_by_date, quantity_type))
       # add new entries
       add_new_project_items(data)
     else:
@@ -156,15 +157,20 @@ def update_project_details():
         project_comp_id = item.get("project_comp_id", "")
         required_quantity = item.get("required_quantity", "")
         required_by_date = item.get("required_by_date", "")
+        quantity_type = item.get("quantity_type", "")
+        
         if project_comp_id:
-          update_data.append((required_quantity, required_by_date, project_comp_id))
+          used_quantity = item.get("used_quantity", 0)
+          dispatched_quantity = item.get("dispatched_quantity", 0)
+          update_data.append((required_quantity, required_by_date, quantity_type, used_quantity, dispatched_quantity, project_comp_id))
         else:
           product_type = item.get("product_type", "")
           product_id = item.get("product_id", "")
-          insert_data.append((project_id, product_type, product_id, required_quantity, required_by_date))
+          insert_data.append((project_id, product_type, product_id, required_quantity,required_by_date, quantity_type))
       
       #update entries
-      query = """ update project_master_list set required_quantity = %s, required_by_date = %s
+      query = """ update project_master_list set required_quantity = %s, required_by_date = %s, quantity_type = %s,
+                  used_quantity = %s, dispatched_quantity = %s
                   where project_comp_id = %s
               """
       DBUtil().execute_query(query, update_data, executemany=True, commit=True)
@@ -382,7 +388,7 @@ def get_project_items():
       query = """
         select p.project_id, pml.project_comp_id, 
         pml.product_type, pml.product_id, pml.required_quantity, 
-        pml.required_by_date 
+        pml.required_by_date, pml.used_quantity, pml.dispatched_quantity, pml.quantity_type 
         from projects p
         join project_master_list pml on pml.project_id = p.project_id
         where project_name = %s
@@ -498,9 +504,10 @@ def get_dashboard():
   try:
     #result = {project_count, products_ordered, order_count}
     query = """
-              select p.project_id, p.project_name, pml.product_type, pml.product_id,
+              select p.project_id, p.project_name, pml.product_type, pml.product_id, pml.quantity_type,
                 sum(pml.required_quantity) required_quantity,
                 sum(pml.used_quantity) used_quantity,
+                sum(pml.dispatched_quantity) dispatched_quantity,
                 sum(ifnull(orders.ordered_quantity,0)) ordered_quantity,
                 sum(ifnull(orders.recieved_accepted,0)) recieved_accepted,
                 sum(ifnull(orders.recieved_rejected,0)) recieved_rejected
@@ -521,7 +528,7 @@ def get_dashboard():
                 on pod.order_comp_id = rec_ord.order_comp_id
                 group by pod.project_comp_id) orders
               on pml.project_comp_id = orders.project_comp_id
-              group by p.project_id, p.project_name, pml.product_type, pml.product_id
+              group by p.project_id, p.project_name, pml.product_type, pml.product_id, pml.quantity_type
             """
     query_result = DBUtil().execute_query(query)
 

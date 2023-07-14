@@ -19,7 +19,7 @@ const SideNavigaiton = () => {
           <div className="h-100" id="leftside-menu-container" data-simplebar>
               
               <div className="leftbar-user">
-                  <h4 className="leftbar-user-name mt-2">{currentUser.name}</h4>
+                  <h4 className="leftbar-user-name mt-2">{currentUser?.name}</h4>
               </div>
 
               <ul className="side-nav">
