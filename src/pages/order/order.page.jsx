@@ -9,7 +9,7 @@ import { useContext } from 'react';
 
 function removeDup(arr) {
   let result = []
-  arr.forEach((item, index) => { if (arr.indexOf(item) == index) result.push(item) });
+  arr.forEach((item, index) => { if (arr.indexOf(item) === index) result.push(item) });
   return result;
 }
 

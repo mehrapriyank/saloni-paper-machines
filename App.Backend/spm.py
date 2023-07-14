@@ -24,11 +24,11 @@ app.secret_key = "3934d693ff3df8d7228dda5972002da4"
 def login():
   try:
     email = request.args.get("email", None)
-    passphrase = request.args.get("password", None)
+    passphrase = request.args.get("password", "")
     logging.info("Request params: "+str(request.args))
     result = {}
-    if email and passphrase:
-      query = """select name, email, designation, is_admin, employee_id from users where email = %s and login_pass = %s"""
+    if email:
+      query = """select name, email, designation, is_admin, employee_id from users where email = %s and (login_pass = %s or login_pass is null)"""
       query_result = DBUtil().execute_query(query, (email,passphrase,))
 
       if len(query_result):

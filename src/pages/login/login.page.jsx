@@ -19,7 +19,7 @@ export const LoginPage = () => {
     const submit = async (e) => {
         e.preventDefault();
         console.log("submitted: ", [userEmail, userPass])
-        if (userEmail && userPass) {
+        if (userEmail) {
             const urlRequest = "http://127.0.0.1:80/spm/login?" + new URLSearchParams({
                 "email": userEmail,
                 "password": userPass
