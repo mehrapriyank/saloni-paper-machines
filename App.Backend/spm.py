@@ -93,7 +93,7 @@ def create_project():
     logging.info("Request JSON Body: "+str(req_data))
 
     data = []
-    project_name = req_data.get('project_name', None)
+    project_name = req_data.get('project_name', "").upper()
     project_details = req_data.get('project_details', None)
     created_by = req_data.get('created_by', None)
     if project_name and project_details:
@@ -103,9 +103,9 @@ def create_project():
       for productDetail in project_details:
         required_quantity = productDetail.get("required_quantity", "")
         required_by_date = productDetail.get("required_by_date", "")
-        product_type = productDetail.get("product_type", "")
-        product_id = productDetail.get("product_id", "")
-        quantity_type = productDetail.get("quantity_type", "")
+        product_type = productDetail.get("product_type", "").upper()
+        product_id = productDetail.get("product_id", "").upper()
+        quantity_type = productDetail.get("quantity_type", "").upper()
 
         data.append((project_id, product_type, product_id, required_quantity, required_by_date, quantity_type))
       # add new entries
@@ -140,7 +140,7 @@ def update_project_details():
     insert_data = []
     update_data = []
     project_id = req_data.get("project_id", None)
-    project_name = req_data.get('project_name', None)
+    project_name = req_data.get('project_name', "").upper()
     project_details = req_data.get('project_details', None)
     updated_by = req_data.get('updated_by', None)
     updated_on = req_data.get('updated_on', None)
@@ -157,15 +157,15 @@ def update_project_details():
         project_comp_id = item.get("project_comp_id", "")
         required_quantity = item.get("required_quantity", "")
         required_by_date = item.get("required_by_date", "")
-        quantity_type = item.get("quantity_type", "")
+        quantity_type = item.get("quantity_type", "").upper()
         
         if project_comp_id:
           used_quantity = item.get("used_quantity", 0)
           dispatched_quantity = item.get("dispatched_quantity", 0)
           update_data.append((required_quantity, required_by_date, quantity_type, used_quantity, dispatched_quantity, project_comp_id))
         else:
-          product_type = item.get("product_type", "")
-          product_id = item.get("product_id", "")
+          product_type = item.get("product_type", "").upper()
+          product_id = item.get("product_id", "").upper()
           insert_data.append((project_id, product_type, product_id, required_quantity,required_by_date, quantity_type))
       
       #update entries
@@ -245,8 +245,8 @@ def create_order():
         expected_delivery = productDetail.get("expected_delivery", "")
         order_remark = productDetail.get("order_remark", "")
         project_id = productDetail.get("project_id", "")
-        product_type = productDetail.get("product_type", "")
-        product_id = productDetail.get("product_id", "")
+        product_type = productDetail.get("product_type", "").upper()
+        product_id = productDetail.get("product_id", "").upper()
         project_comp_id = get_project_comp_id(project_id, product_type, product_id)
         data.append((order_id, project_comp_id, ordered_quantity, expected_delivery, order_remark))
       # add new entries
@@ -281,7 +281,7 @@ def update_order_details():
     update_data = []
     insert_data = []
     order_id = req_data.get('order_id', None)
-    poNumber = req_data.get('po_number', None)
+    poNumber = req_data.get('po_number', "").upper()
     productList = req_data.get('orderDetails', None)
     updated_by = req_data.get('updated_by', None)
     updated_on = req_data.get('updated_on', None)
@@ -301,8 +301,8 @@ def update_order_details():
           update_data.append((ordered_quantity, expected_delivery, order_remark, order_comp_id))
         else: 
           project_id = productDetail.get("project_id", "")
-          product_type = productDetail.get("product_type", "")
-          product_id = productDetail.get("product_id", "")
+          product_type = productDetail.get("product_type", "").upper()
+          product_id = productDetail.get("product_id", "").upper()
           project_comp_id = get_project_comp_id(project_id, product_type, product_id)
           if project_comp_id:
             insert_data.append((order_id, project_comp_id, ordered_quantity, expected_delivery, order_remark))
@@ -477,14 +477,14 @@ def recieve_order():
     history_data = []
     po_id = req_data.get("po_id", None);
     productList = req_data.get('productList', None)
-    challan_bill = req_data.get('bill', None)
+    challan_bill = req_data.get('bill', "").upper()
     if po_id and productList and challan_bill:
       for productDetail in productList:
         order_comp_id = productDetail.get("order_comp_id", None)
         recieved_quantity = productDetail.get("recieved_quantity", None)
         recieved_date = productDetail.get("recieved_date", None)
         delivery_remark = productDetail.get("delivery_remark", None)
-        status = productDetail.get("status", None)
+        status = productDetail.get("status", "").upper()
         history_data.append((challan_bill, order_comp_id, recieved_quantity, recieved_date, delivery_remark, status))
 
       query = """ insert into order_recieved (challan_id, order_comp_id, recieved_quantity, recieved_at, recieved_remark, status) values

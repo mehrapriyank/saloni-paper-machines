@@ -230,7 +230,25 @@ export const UpdateOrderForm = () => {
                   </div>
                   <div className="row">
                       <div className="mb-1 mt-3 col-auto"><button type="button" className="btn btn-light px-5" onClick={(e) => cleanPage()}>Cancel</button></div>
-                      <div className="mb-1 mt-3 col-auto"><button className={`btn px-5 px-sm-15 ${poNumber && bill ? "btn-primary":"btn-outline-primary disabled"}`} type="submit">Confirm</button></div>
+                      <div className="mb-1 mt-3 col-auto"><button className={`btn px-5 px-sm-15 ${poNumber && bill ? "btn-primary":"btn-outline-primary disabled"}`} type="button" data-bs-toggle="modal" data-bs-target="#standard-modal">Confirm</button></div>
+                  </div>
+
+                  <div id="standard-modal" className="modal fade" tabIndex="-1" role="dialog" aria-labelledby="standard-modalLabel" aria-hidden="true">
+                      <div className="modal-dialog">
+                          <div className="modal-content">
+                              <div className="modal-header">
+                                  <h4 className="modal-title" id="standard-modalLabel">Modal Heading</h4>
+                                  <button type="button" className="btn-close" data-bs-dismiss="modal" aria-hidden="true"></button>
+                              </div>
+                              <div className="modal-body">
+                                  Do you want to save the order details?
+                              </div>
+                              <div className="modal-footer">
+                                  <button type="button" className="btn btn-light" data-bs-dismiss="modal">Keep Editing</button>
+                                  <button type="submit" className="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
+                              </div>
+                          </div>
+                      </div>
                   </div>
                 </Form> 
             </div> 

@@ -99,9 +99,9 @@ export const Order = () => {
     const project_name = data[index]["project_name"] || "";
     const prod = project_master_list.current[project_name]
     if (event.target.name === "product_type")
-      data[index]["validProduct"] = project_name && (prod && prod.product_types.some((product) => product === event.target.value));
+      data[index]["validProduct"] = project_name && (prod && prod.product_types.some((product) => product === event.target.value.toUpperCase()));
     if (event.target.name === "product_id")
-      data[index]["validProductCode"] = project_name && (prod && prod.product_ids.some((product) => product === event.target.value));
+      data[index]["validProductCode"] = project_name && (prod && prod.product_ids.some((product) => product === event.target.value.toUpperCase()));
     setorderDetails(data);
     checkValidation();
   }

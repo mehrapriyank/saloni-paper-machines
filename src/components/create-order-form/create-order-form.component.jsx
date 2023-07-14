@@ -79,9 +79,9 @@ export const CreateOrderForm = () => {
     const project_name = data[index]["project_name"] || "";
     const prod = project_master_list.current[project_name]
     if (event.target.name === "product_type")
-      data[index]["validProduct"] = project_name && (prod && prod.product_types.some((product) => product === event.target.value));
+      data[index]["validProduct"] = project_name && (prod && prod.product_types.some((product) => product === event.target.value.toUpperCase()));
     if (event.target.name === "product_id")
-      data[index]["validProductCode"] = project_name && (prod && prod.product_ids.some((product) => product === event.target.value));
+      data[index]["validProductCode"] = project_name && (prod && prod.product_ids.some((product) => product === event.target.value.toUpperCase()));
     setProductList(data);
     checkValidation()
   }
@@ -198,10 +198,10 @@ export const CreateOrderForm = () => {
                                 ("")
                               }
                             </div>
-                            {/* <div className="col-xl-4 mb-3 col-auto">
+                            <div className="col-xl-4 mb-3 col-auto">
                               <label htmlFor="remark" className="form-label">Remark</label>
                               <Form.Control name='remark' type="text" placeholder="Add Remark" value={order_remark} onChange={(e) => handleFormChange(e, index)}/>
-                            </div> */}
+                            </div>
 
                           </div>
                         )
