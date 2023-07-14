@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { UserContext } from "../../contexts/user.context";
 
 function removeDup(arr) {
   let result = []
@@ -8,29 +9,31 @@ function removeDup(arr) {
 }
 export const ProjectList = () => {
   const [projects, setProjects] = useState([]);
-  
+  const {currentUser} = useContext(UserContext);
 
   useEffect(() => {
     ( async () => {
-      const urlRequest = "http://127.0.0.1:80/spm/get_project_agg";
-      const response =  await fetch(urlRequest, {
-        method: 'get', mode: 'cors', contentType: 'application/json',
-      });
-      const response_data = await response.json();
-      const project_list = [];
-      response_data.forEach(({project_name, created_by, product_ids, product_types, created_at}) => {
-        const project_details = {};
-        project_details["project_id"] = project_name;
-        project_details["product_ids"] = removeDup(JSON.parse(product_ids));
-        project_details["product_types"] = removeDup(JSON.parse(product_types));
-        project_details["created_by"] = created_by;
-        project_details["created_at"] = created_at;
-        project_list.push(project_details);
-      });
+      if (currentUser) {
+        const urlRequest = "http://127.0.0.1:80/spm/get_project_agg";
+        const response =  await fetch(urlRequest, {
+          method: 'get', mode: 'cors', contentType: 'application/json',
+        });
+        const response_data = await response.json();
+        const project_list = [];
+        response_data.forEach(({project_name, created_by, product_ids, product_types, created_at}) => {
+          const project_details = {};
+          project_details["project_id"] = project_name;
+          project_details["product_ids"] = removeDup(JSON.parse(product_ids));
+          project_details["product_types"] = removeDup(JSON.parse(product_types));
+          project_details["created_by"] = created_by;
+          project_details["created_at"] = created_at;
+          project_list.push(project_details);
+        });
 
-      await setProjects(project_list);
+        await setProjects(project_list);
 
-      console.log(project_list);
+        console.log(project_list);
+      }
     }
     )()
   }, [])

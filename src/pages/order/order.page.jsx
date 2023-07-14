@@ -41,53 +41,55 @@ export const Order = () => {
 
   useEffect( () => {
     ( async () => {
-      const urlRequest = "http://127.0.0.1:80/spm/get_project_agg";
-      const response =  await fetch(urlRequest, {
-        method: 'get', mode: 'cors', contentType: 'application/json',
-      });
-      const response_data = await response.json();
-      console.log(response_data);
-      
-      response_data.forEach(({project_id, project_name, product_ids, product_types}) => {
-        const project = {};
-        project["project_id"] = project_id;
-        project["product_ids"] = removeDup(JSON.parse(product_ids));
-        project["product_types"] = removeDup(JSON.parse(product_types));
-        project["project_name"] = project_name;
+      if (currentUser) {
+        const urlRequest = "http://127.0.0.1:80/spm/get_project_agg";
+        const response =  await fetch(urlRequest, {
+          method: 'get', mode: 'cors', contentType: 'application/json',
+        });
+        const response_data = await response.json();
+        console.log(response_data);
+        
+        response_data.forEach(({project_id, project_name, product_ids, product_types}) => {
+          const project = {};
+          project["project_id"] = project_id;
+          project["product_ids"] = removeDup(JSON.parse(product_ids));
+          project["product_types"] = removeDup(JSON.parse(product_types));
+          project["project_name"] = project_name;
 
-        project_dict[project_name] = project;
-      });
-      project_master_list.current = project_dict;
-      
-      console.log(project_dict)
-      const project_options = [];
-      Object.keys(project_master_list.current).forEach((project_name) => {
-        project_options.push({value: project_name, label: project_name})
-      })
+          project_dict[project_name] = project;
+        });
+        project_master_list.current = project_dict;
+        
+        console.log(project_dict)
+        const project_options = [];
+        Object.keys(project_master_list.current).forEach((project_name) => {
+          project_options.push({value: project_name, label: project_name})
+        })
 
-      setProjectOptions(project_options);
-      console.log("project option: ", project_options);
+        setProjectOptions(project_options);
+        console.log("project option: ", project_options);
 
-      const ourlRequest = "http://127.0.0.1:80/spm/get_order_details?" + new URLSearchParams({
-        "po_number": poNumber
-      });
-      const oresponse =  await fetch(ourlRequest, {
-        method: 'get', mode: 'cors', contentType: 'application/json',
-      })
+        const ourlRequest = "http://127.0.0.1:80/spm/get_order_details?" + new URLSearchParams({
+          "po_number": poNumber
+        });
+        const oresponse =  await fetch(ourlRequest, {
+          method: 'get', mode: 'cors', contentType: 'application/json',
+        })
 
-      const oresponse_data = await oresponse.json();
-      console.log("purchase_order: ",oresponse_data)
-      setOrderId(oresponse_data.order_id)
-      const orderDet = oresponse_data.order_items;
-      console.log(orderDet);
+        const oresponse_data = await oresponse.json();
+        console.log("purchase_order: ",oresponse_data)
+        setOrderId(oresponse_data.order_id)
+        const orderDet = oresponse_data.order_items;
+        console.log(orderDet);
 
-      orderDet.forEach((order) => {
-        order["isUpdated"] = false;
-        order["validProduct"] = true;
-        order["validProductCode"] = true;
-      })
-      setorderDetails([...orderDet]);
-      setOriginalList(JSON.parse(JSON.stringify(orderDet)));
+        orderDet.forEach((order) => {
+          order["isUpdated"] = false;
+          order["validProduct"] = true;
+          order["validProductCode"] = true;
+        })
+        setorderDetails([...orderDet]);
+        setOriginalList(JSON.parse(JSON.stringify(orderDet)));
+      }
     }
     )()
   }, [editOrder])

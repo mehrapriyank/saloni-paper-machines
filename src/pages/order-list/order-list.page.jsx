@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { UserContext } from '../../contexts/user.context';
+import { useContext } from 'react';
 
 function removeDup(arr) {
   let result = []
@@ -8,30 +10,33 @@ function removeDup(arr) {
 }
 
 export const OrderList = () => {
+  const {currentUser} = useContext(UserContext);
   const [projects, setProjects] = useState([]);
   const order_list = [];
   useEffect(() => {
     ( async () => {
-      const urlRequest = "http://127.0.0.1:80/spm/get_po_agg";
-      const response =  await fetch(urlRequest, {
-        method: 'get', mode: 'cors', contentType: 'application/json',
-      });
-      const response_data = await response.json();
+      if (currentUser){
+        const urlRequest = "http://127.0.0.1:80/spm/get_po_agg";
+        const response =  await fetch(urlRequest, {
+          method: 'get', mode: 'cors', contentType: 'application/json',
+        });
+        const response_data = await response.json();
 
-      response_data.forEach(({po_number, product_ids, product_types, created_by, created_at}) => {
-        const order_details = {};
-        order_details["order_id"] = po_number;
-        order_details["product_ids"] = removeDup(JSON.parse(product_ids));
-        order_details["product_types"] = removeDup(JSON.parse(product_types));
-        // order_details["projects"] = removeDup(JSON.parse(projects));
-        order_details["created_by"] = created_by;
-        order_details["created_at"] = created_at;
+        response_data.forEach(({po_number, product_ids, product_types, created_by, created_at}) => {
+          const order_details = {};
+          order_details["order_id"] = po_number;
+          order_details["product_ids"] = removeDup(JSON.parse(product_ids));
+          order_details["product_types"] = removeDup(JSON.parse(product_types));
+          // order_details["projects"] = removeDup(JSON.parse(projects));
+          order_details["created_by"] = created_by;
+          order_details["created_at"] = created_at;
 
-        order_list.push(order_details);
-      });
-      setProjects(order_list);
+          order_list.push(order_details);
+        });
+        setProjects(order_list);
 
-      console.log(response_data);
+        console.log(response_data);
+      }
     }
     )()
   }, [])

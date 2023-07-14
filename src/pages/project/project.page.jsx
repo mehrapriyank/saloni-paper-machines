@@ -23,20 +23,22 @@ export const Project = () => {
   const [originalList, setOriginalList] = useState([]);
   useEffect(() => {
     ( async () => {
-      const urlRequest = "http://127.0.0.1:80/spm/get_project_items?" + new URLSearchParams({
-        "project_name": project
-      });
-      const response =  await fetch(urlRequest, {
-        method: 'get', mode: 'cors', contentType: 'application/json',
-      })
+      if (currentUser) {
+        const urlRequest = "http://127.0.0.1:80/spm/get_project_items?" + new URLSearchParams({
+          "project_name": project
+        });
+        const response =  await fetch(urlRequest, {
+          method: 'get', mode: 'cors', contentType: 'application/json',
+        })
 
-      const response_data = await response.json();
-      console.log(response_data)
-      setProjectID(response_data.project_id);
-      const project_items = response_data.project_items;
-      const projectDet = project_items.map(item => ({...item, isUpdated: false}))
-      setProjectDetails([...projectDet]);
-      setOriginalList(JSON.parse(JSON.stringify(projectDet)));
+        const response_data = await response.json();
+        console.log(response_data)
+        setProjectID(response_data.project_id);
+        const project_items = response_data.project_items;
+        const projectDet = project_items.map(item => ({...item, isUpdated: false}))
+        setProjectDetails([...projectDet]);
+        setOriginalList(JSON.parse(JSON.stringify(projectDet)));
+        }
     })()
   }, [editProject])
   

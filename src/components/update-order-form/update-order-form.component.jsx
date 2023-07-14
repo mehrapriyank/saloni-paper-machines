@@ -3,7 +3,8 @@ import Select from 'react-select'
 import { Form } from 'react-bootstrap';
 import 'react-bootstrap/'
 import "react-datepicker/dist/react-datepicker.css";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
+import { UserContext } from '../../contexts/user.context';
 
 let options = [];
 const statusOptions = [
@@ -15,23 +16,25 @@ export const UpdateOrderForm = () => {
   const [poNumber, setPONumber] = useState("");
   const [poList, setPOOptions] = useState([]);
   const [bill, setBill] = useState("");
-  
+  const {currentUser} = useContext(UserContext);
   useEffect( ()=> {
-
       ( async () => {
-        const urlRequest = "http://127.0.0.1:80/spm/get_purchase_orders";
-        const response =  await fetch(urlRequest, {
-          method: 'get', mode: 'cors', contentType: 'application/json',
-        });
-        const response_data = await response.json();
-        console.log("Purchase order list: "+response_data)
-        
-        options = [];
-        response_data.forEach(({po_number}) => {
-          options.push({value: po_number, label: po_number})
-        })
+        if (currentUser) {
+          const urlRequest = "http://127.0.0.1:80/spm/get_purchase_orders";
+          const response =  await fetch(urlRequest, {
+            method: 'get', mode: 'cors', contentType: 'application/json',
+          });
+          const response_data = await response.json();
+          console.log("Purchase order list: "+response_data)
+          
+          options = [];
+          response_data.forEach(({po_number}) => {
+            options.push({value: po_number, label: po_number})
+          })
 
-        setPOOptions(options);
+          setPOOptions(options);
+        }
+        
       }
       )()
   }, []);
