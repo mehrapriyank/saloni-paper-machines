@@ -3,7 +3,13 @@ import { useParams } from 'react-router-dom';
 import { Form } from 'react-bootstrap';
 import { UserContext } from '../../contexts/user.context';
 import { useContext } from 'react';
+import Select from 'react-select'
 
+const qtypeOption = [
+  { "value": "Meter", "label": "Meter" },
+  { "value": "Kg", "label": "Kg" },
+  { "value": "", "label": "" },
+]
 export const Project = () => {
   const {currentUser} = useContext(UserContext);
   const { project} = useParams();
@@ -18,7 +24,8 @@ export const Project = () => {
     "product_id": "",
     "required_quantity": "",
     "required_by_date": "",
-    "isUpdated": true
+    "isUpdated": true,
+    "quantity_type": ""
   }
   const [originalList, setOriginalList] = useState([]);
   useEffect(() => {
@@ -72,6 +79,20 @@ export const Project = () => {
     await setProjectDetails(data)
     checkValidation();
   }
+
+  const handleQTypeChange = (event, index) => {
+    console.log(event)
+    let data = [...projectDetails];
+    if (event) {
+     data[index]["quantity_type"] = event.value;
+    } else {
+      data[index]["quantity_type"] = "";
+    }
+    setProjectDetails(data);
+    data[index]["isUpdated"] = true;
+    checkValidation();
+  }
+
 
   const submit = async (e) => {
     e.preventDefault();
@@ -146,9 +167,9 @@ export const Project = () => {
                                   <label htmlFor="required_quantity" className="form-label">Required</label>
                                   <Form.Control name='required_quantity' className={ editProject ? 'border border-primary' : ""} type="text" placeholder="Req Quantity" value={required_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
                                 </div>
-                                <div className="col-xl-1 mb-2 col-auto">
+                                <div className="col-xl-2 mb-2 col-auto">
                                   <label htmlFor="quantity_type" className="form-label">QType</label>
-                                  <Form.Control name='quantity_type' className={ editProject ? 'border border-primary' : ""} type="text" placeholder="Quantity Type" value={quantity_type? quantity_type:""} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
+                                  <Select name='quantity_type' value={{"label": quantity_type}} options={qtypeOption} isSearchable={true} isClearable={true} onChange={(s)=>handleQTypeChange(s, index)} isDisabled={!editProject}></Select>
                                 </div>
                                 <div className="col-xl-2 mb-2 col-auto">
                                     <label className="form-label">Req Date</label>

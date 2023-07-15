@@ -1,15 +1,22 @@
 import 'react-bootstrap/'
+import Select from 'react-select'
 import { Form } from 'react-bootstrap';
 import { useState } from 'react';
 import { UserContext } from '../../contexts/user.context';
 import { useContext } from 'react';
+const qtypeOption = [
+  { "value": "Meter", "label": "Meter" },
+  { "value": "Kg", "label": "Kg" },
+  { "value": "", "label": "" },
+]
 export const ProjectMasterListForm = () => {
   const {currentUser} = useContext(UserContext);
   const empty_product = {
     "product_type": "",
     "product_id": "",
     "required_quantity": "",
-    "required_by_date": ""
+    "required_by_date": "",
+    "quantity_type": ""
   }
 
   const [productList, setProductList] = useState([empty_product]);
@@ -52,6 +59,17 @@ export const ProjectMasterListForm = () => {
     data.splice(index, 1)
     await setProductList(data)
     checkValidation();
+  }
+
+  const handleQTypeChange = (event, index) => {
+    console.log(event)
+    let data = [...productList];
+    if (event) {
+     data[index]["quantity_type"] = event.value;
+    } else {
+      data[index]["quantity_type"] = "";
+    }
+    setProductList(data);
   }
 
   const submit = async (e) => {
@@ -100,7 +118,7 @@ export const ProjectMasterListForm = () => {
                     
                     {
                       projectName?
-                      productList.map(({product_type, product_id, required_quantity, required_by_date}, index ) => {
+                      productList.map(({product_type, product_id, required_quantity, required_by_date,quantity_type}, index ) => {
                         return (
                           <div className="row mb-3" style={index < productList.length-1? {"borderBottom": "1px solid #d8d8d8"} : {}} key={index}>
                             
@@ -115,6 +133,10 @@ export const ProjectMasterListForm = () => {
                             <div className="col-xl-2 mb-3 col-auto">
                               <label htmlFor="required_quantity" className="form-label">Required Quantity</label>
                               <Form.Control name='required_quantity' type="text" placeholder="Quantity" value={required_quantity} onChange={(e) => handleFormChange(e, index)} required/>
+                            </div>
+                            <div className="col-xl-2 mb-1 col-auto">
+                                <label htmlFor="status" className="form-label">Quantity Type</label>
+                                <Select name='quantity_type' value={{"label": quantity_type}} options={qtypeOption} isSearchable={true} isClearable={true} onChange={(s)=>handleQTypeChange(s, index)} required></Select>
                             </div>
                             <div className="col-xl-2 mb-3 col-auto">
                                 <label className="form-label">Delivery Date</label>
