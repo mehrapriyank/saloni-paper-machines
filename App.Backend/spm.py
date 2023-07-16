@@ -105,7 +105,7 @@ def create_project():
         required_by_date = productDetail.get("required_by_date", "")
         product_type = productDetail.get("product_type", "").upper()
         product_id = productDetail.get("product_id", "").upper()
-        quantity_type = productDetail.get("quantity_type", "").upper()
+        quantity_type = productDetail.get("quantity_type", "")
 
         data.append((project_id, product_type, product_id, required_quantity, required_by_date, quantity_type))
       # add new entries
@@ -157,7 +157,7 @@ def update_project_details():
         project_comp_id = item.get("project_comp_id", "")
         required_quantity = item.get("required_quantity", "")
         required_by_date = item.get("required_by_date", "")
-        quantity_type = item.get("quantity_type", "").upper()
+        quantity_type = item.get("quantity_type", "")
         
         if project_comp_id:
           used_quantity = item.get("used_quantity", 0)

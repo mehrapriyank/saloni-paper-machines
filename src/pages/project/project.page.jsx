@@ -6,9 +6,9 @@ import { useContext } from 'react';
 import Select from 'react-select'
 
 const qtypeOption = [
-  { "value": "Meter", "label": "Meter" },
+  { "value": "mm", "label": "mm" },
   { "value": "Kg", "label": "Kg" },
-  { "value": "", "label": "" },
+  { "value": "No's", "label": "No's" },
 ]
 export const Project = () => {
   const {currentUser} = useContext(UserContext);
