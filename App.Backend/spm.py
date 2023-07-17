@@ -388,9 +388,16 @@ def get_project_items():
       query = """
         select p.project_id, pml.project_comp_id, 
         pml.product_type, pml.product_id, pml.required_quantity, 
-        pml.required_by_date, pml.used_quantity, pml.dispatched_quantity, pml.quantity_type 
+        pml.required_by_date, pml.used_quantity, pml.dispatched_quantity, pml.quantity_type, 
+        orders.recieved_quantity
         from projects p
         join project_master_list pml on pml.project_id = p.project_id
+        left join 
+        (select pod.project_comp_id, sum(ord.recieved_quantity) recieved_quantity from
+        purchase_order_details pod, order_recieved ord
+        where pod.order_comp_id = ord.order_comp_id and upper(ord.status) = 'ACCEPTED'
+        group by pod.project_comp_id) orders
+        on orders.project_comp_id = pml.project_comp_id
         where project_name = %s
       """
       query_result = DBUtil().execute_query(query, (project_name,))
@@ -506,8 +513,6 @@ def get_dashboard():
     query = """
               select p.project_id, p.project_name, pml.product_type, pml.product_id, pml.quantity_type,
                 sum(pml.required_quantity) required_quantity,
-                sum(pml.used_quantity) used_quantity,
-                sum(pml.dispatched_quantity) dispatched_quantity,
                 sum(ifnull(orders.ordered_quantity,0)) ordered_quantity,
                 sum(ifnull(orders.recieved_accepted,0)) recieved_accepted,
                 sum(ifnull(orders.recieved_rejected,0)) recieved_rejected
@@ -538,7 +543,7 @@ def get_dashboard():
     project_dict = {}
     product_dict = {}
     for row in query_result:
-      # row = {project_name, product_type, product_id, reuqired_quantity, used_quantity, recieved_accepted, recieved_rejected}
+      # row = {project_name, product_type, product_id, reuqired_quantity, recieved_accepted, recieved_rejected}
       project_name = row.get("project_name", "")
       product_type = row.get("product_type", "")
       if project_name in project_dict:
@@ -558,6 +563,47 @@ def get_dashboard():
     }
     for project_name, project_details in project_dict.items():
       result["projects"].append({"project_name": project_name, "project_details": project_details})
+    
+    for product_type, product_details in product_dict.items():
+      result["products"].append({"product_type": product_type, "product_details": product_details})
+
+    response = Response(json.dumps(result, default=str))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+    logging.info("Result: "+str(response))
+    return response
+  except Exception as e:
+    logging.error(e)
+    raise e
+
+
+@app.route('/spm/get_inventory', methods = ['GET'])
+def get_inventory():
+  try:
+    #result = {project_count, products_ordered, order_count}
+    query = """
+              select pml.product_id, pml.product_type, pml.quantity_type, sum(ord.recieved_quantity) recieved, 
+              sum(pml.used_quantity) used, sum(pml.dispatched_quantity) dispatched
+              from order_recieved ord, project_master_list pml, purchase_order_details pod
+              where pod.order_comp_id = ord.order_comp_id
+              and pod.project_comp_id = pml.project_comp_id
+              and upper(ord.status) = 'ACCEPTED'
+              group by pml.product_id, pml.product_type, pml.quantity_type
+            """
+    query_result = DBUtil().execute_query(query)
+
+    product_dict = {}
+    for row in query_result:
+      product_type = row.get("product_type", "")
+      # row = {product_id, product_type, recieved, used, dispatched}
+      if product_type in product_dict:
+        product_dict[product_type].append(row)
+      else: 
+        product_dict[product_type] = [row]
+
+    result = {
+      "products": [],
+    }
     
     for product_type, product_details in product_dict.items():
       result["products"].append({"product_type": product_type, "product_details": product_details})

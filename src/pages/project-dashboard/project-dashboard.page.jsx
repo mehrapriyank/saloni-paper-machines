@@ -1,28 +1,31 @@
 import { useEffect, useState, useContext} from "react";
-import { ProductTableCard } from "../../components/table-card/table-card.component";
+import { ProjectTableCard } from "../../components/table-card/table-card.component";
 import { useRef } from "react";
 import { UserContext } from "../../contexts/user.context";
-export const InventoryDashboard = () => {
+export const ProjectDashboard = () => {
   const inventory = useRef([]);
-  const [products, setProducts] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [poCount, setPOCount] = useState([]);
   const {currentUser} = useContext(UserContext);
   
   useEffect(() => {
     ( async () => {
       if (currentUser){
-        const urlRequest = "http://127.0.0.1:80/spm/get_inventory";
+        const urlRequest = "http://127.0.0.1:80/spm/get_dashboard_items";
         const response =  await fetch(urlRequest, {
           method: 'get', mode: 'cors', contentType: 'application/json',
         });
         const response_data = await response.json();
         inventory.current = response_data;
         
-        setProducts(response_data["products"]);
+        setProjects(response_data["projects"]);
+        setPOCount(response_data["po"]);
         console.log(response_data);
       }
     }
     )()
   }, [])
+
 
   if (!currentUser){
     return ("");
@@ -34,7 +37,7 @@ export const InventoryDashboard = () => {
               <div className="row">
                   <div className="col-sm-4">
                       <div className="page-title-box">
-                          <h3 className="page-title">Inventory Dashboard</h3>
+                          <h3 className="page-title">Project Dashboard</h3>
                       </div>
                   </div>
               </div>
@@ -45,22 +48,22 @@ export const InventoryDashboard = () => {
                         <div className="card-body p-0">
                             <div className="row g-0">
 
-                            <div id="product_card" className="col-sm-6 col-lg-6">
+                                <div id="pending-project_card" className="col-sm-6 col-lg-6" >
                                     <div className="card rounded-0 shadow-none m-0 border-start border-light">
                                         <div className="card-body text-center">
-                                            <i className="ri-group-line text-muted font-24"></i>
-                                            <h3><span>{products.length}</span></h3>
-                                            <p className="text-muted font-15 mb-0">Product Types</p>
+                                            <i className="ri-briefcase-line text-muted font-24"></i>
+                                            <h3><span>{projects.length}</span></h3>
+                                            <p className="text-muted font-15 mb-0">Projects</p>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div id="product_id_card" className="col-sm-6 col-lg-5">
+                                <div id="project_card" className="col-sm-6 col-lg-6">
                                     <div className="card rounded-0 shadow-none m-0 border-start border-light">
                                         <div className="card-body text-center">
-                                            <i className="ri-group-line text-muted font-24"></i>
-                                            <h3><span>{products.length}</span></h3>
-                                            <p className="text-muted font-15 mb-0">Product Ids</p>
+                                            <i className="ri-list-check-2 text-muted font-24"></i>
+                                            <h3><span>{poCount}</span></h3>
+                                            <p className="text-muted font-15 mb-0">Total Orders Placed</p>
+                                            
                                         </div>
                                     </div>
                                 </div>
@@ -73,28 +76,28 @@ export const InventoryDashboard = () => {
 
               <div className="accordion custom-accordion" id="CardaccordionExample">
               { 
-                products.map((product) => {
-                  return (
-                      <div className="card mb-0" key={product.product_type}>
+                projects.map((project) => {
+                    return (
+                      <div className="card mb-0" key={project.project_name}>
                         <div className="card-header" id="CardheadingOne">
                             <h5 className="m-0">
                                 <a className="custom-accordion-title d-block pt-2 pb-2"
-                                    data-bs-toggle="collapse" href={`#product${product.product_type}`}
-                                    aria-expanded="true" aria-controls={`product${product.product_type}`}>
-                                    Product - {product.product_type}
+                                    data-bs-toggle="collapse" href={`#project${project.project_name}`}
+                                    aria-expanded="true" aria-controls={`project${project.project_name}`}>
+                                    Project - {project.project_name}
                                 </a>
                             </h5>
                         </div>
 
-                        <div id={`product${product.product_type}`} className="collapse show"
+                        <div id={`project${project.project_name}`} className="collapse show"
                             aria-labelledby="CardheadingOne">
                             <div className="card-body">
-                              <ProductTableCard productType={product.product_type} productDetails={product.product_details}></ProductTableCard>
+                              <ProjectTableCard projectID={project.project_name} projectDetails={project.project_details}></ProjectTableCard>
                             </div>
                         </div>
                       </div>
-                  )
-                })
+                    )
+                }) 
               }   
               </div>                              
             </div>

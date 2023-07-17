@@ -33,7 +33,7 @@ export const LoginPage = () => {
 
             if (response_data.login === "1") {
                 await setCurrentUser(response_data);
-                navigate('/dashboard');
+                navigate('/project-dashboard');
             }
         }
     }

@@ -135,12 +135,21 @@ export const Project = () => {
             </div>
           </div>
           {
-            editProject? "":
-            (<div className="row mb-2">
-              <div className="col-sm-4">
-                  <button className="btn btn-danger rounded-pill mb-3" onClick={(e) => onEditClick(e)}><i className="mdi mdi-plus"></i> Edit Project Items</button>
+            editProject? 
+            (
+              <div className="row mb-2">
+                <div className="col-sm-4">
+                  <button className="btn btn-success rounded-pill mb-3" onClick={addProduct}><i className="mdi mdi-plus"></i>Add Items</button>
+                </div>
               </div>
-            </div>)
+            ):
+            (
+              <div className="row mb-2">
+                <div className="col-sm-4">
+                  <button className="btn btn-danger rounded-pill mb-3" onClick={(e) => onEditClick(e)}><i className="mdi mdi-plus"></i> Edit Project Items</button>
+                </div>
+              </div>
+            )
           }
           
           <div className="row">
@@ -151,7 +160,7 @@ export const Project = () => {
                   <div className="row">
                       <Form className="col-xl-12 needs-validation" onSubmit={submit}>
                         {
-                          projectDetails.map(({product_type, product_id, required_quantity, project_comp_id, required_by_date, quantity_type, used_quantity, dispatched_quantity}, index ) => {
+                          projectDetails.map(({product_type, product_id, required_quantity, project_comp_id, required_by_date, quantity_type, used_quantity, dispatched_quantity, recieved_quantity}, index ) => {
                             return (
                               <div className="row mb-3" style={index < projectDetails.length-1? {"borderBottom": "1px solid #d8d8d8"} : {}} key={index}>
                                 
@@ -179,6 +188,10 @@ export const Project = () => {
                                 { project_comp_id? (
                                   <Fragment>
                                     <div className="col-xl-1 mb-2 col-auto">
+                                      <label htmlFor="used_quantity" className="form-label">Recieved</label>
+                                      <Form.Control name='used_quantity' type="text" placeholder="Used" value={recieved_quantity || 0} readOnly/>
+                                    </div>
+                                    <div className="col-xl-1 mb-2 col-auto">
                                       <label htmlFor="used_quantity" className="form-label">Used</label>
                                       <Form.Control name='used_quantity' className={ editProject ? 'border border-primary' : ""} type="text" placeholder="Used" value={used_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
                                     </div>
@@ -196,17 +209,6 @@ export const Project = () => {
                                       <button className="btn btn-outline-danger" type='button' onClick={(e) => removeProduct(e, index)}>Remove</button>
                                     </div>
                                   ): ""
-                                }
-                                {
-                                    editProject? (
-                                      <div className="col-xl-1 mb-3 col-auto">
-                                        <label className="form-label d-block invisible">Add</label>
-                                        {
-                                          index === projectDetails.length-1 ?  (<button className="btn btn-outline-success" type = 'button' onClick={addProduct}>Add</button>): 
-                                          ("")
-                                        }
-                                      </div>
-                                    ):""
                                 }
                                 
                               </div>
