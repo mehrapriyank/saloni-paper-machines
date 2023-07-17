@@ -210,6 +210,17 @@ export const Project = () => {
                                     </div>
                                   ): ""
                                 }
+                                {
+                                  editProject? (
+                                      <div className="col-xl-1 mb-3 col-auto">
+                                        <label className="form-label d-block invisible">Add</label>
+                                        {
+                                          index === projectDetails.length-1 ?  (<button className="btn btn-outline-success" type = 'button' onClick={addProduct}>Add</button>): 
+                                          ("")
+                                        }
+                                      </div>
+                                    ):""
+                                }
                                 
                               </div>
                             )
