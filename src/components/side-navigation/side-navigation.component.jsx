@@ -103,7 +103,7 @@ const SideNavigaiton = () => {
 
                   <li id="products" className={`side-nav-item ${selectedPage === 'products'?  "menuitem-active": ""}`} onClick={onClickHandler}>
                     <Link className="side-nav-link" to="/products">
-                        <i className="uil-tools-alt"></i>
+                        <i className="uil-screw"></i>
                         <span> Products </span>
                     </Link>
                 
