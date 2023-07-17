@@ -8,12 +8,10 @@ import { CreateProjectPage } from './pages/create-project/create-project.page';
 import { ProjectRoute } from './routes/projects/projects.route';
 import { OrderRoute } from './routes/orders/orders.route';
 import { LoginPage } from './pages/login/login.page';
-import { UserContext } from './contexts/user.context';
-import { useContext } from 'react';
 import { InventoryDashboard } from './pages/inventory-dashboard/inventory-dashboard.page';
+import { ProductList } from './pages/product-list/product-list.page';
 
 function App() {
-  const {currentUser} = useContext(UserContext);
   return (
     <Routes>
       <Route path="/login" element={<LoginPage/>}> </Route>
@@ -34,6 +32,8 @@ function App() {
           <Route path='create-order' element={<CreateOrderPage/>}>
           </Route>
           <Route path='update-order' element={<UpdateOrderPage/>}>
+          </Route>
+          <Route path='products' element={<ProductList/>}>
           </Route>
         </Route>
       </Route>

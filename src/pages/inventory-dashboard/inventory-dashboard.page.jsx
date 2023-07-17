@@ -6,7 +6,7 @@ export const InventoryDashboard = () => {
   const inventory = useRef([]);
   const [products, setProducts] = useState([]);
   const {currentUser} = useContext(UserContext);
-  
+  const [productIDs, setProductIDs] = useState([]);
   useEffect(() => {
     ( async () => {
       if (currentUser){
@@ -18,6 +18,7 @@ export const InventoryDashboard = () => {
         inventory.current = response_data;
         
         setProducts(response_data["products"]);
+        setProductIDs(response_data["product_ids"]);
         console.log(response_data);
       }
     }
@@ -59,7 +60,7 @@ export const InventoryDashboard = () => {
                                     <div className="card rounded-0 shadow-none m-0 border-start border-light">
                                         <div className="card-body text-center">
                                             <i className="ri-group-line text-muted font-24"></i>
-                                            <h3><span>{products.length}</span></h3>
+                                            <h3><span>{productIDs}</span></h3>
                                             <p className="text-muted font-15 mb-0">Product Ids</p>
                                         </div>
                                     </div>

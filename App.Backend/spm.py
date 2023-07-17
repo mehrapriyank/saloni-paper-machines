@@ -592,17 +592,23 @@ def get_inventory():
             """
     query_result = DBUtil().execute_query(query)
 
+
     product_dict = {}
+    product_ids = {}
     for row in query_result:
       product_type = row.get("product_type", "")
+      product_id = row.get("product_id", "")
       # row = {product_id, product_type, recieved, used, dispatched}
       if product_type in product_dict:
         product_dict[product_type].append(row)
       else: 
         product_dict[product_type] = [row]
+      
+      product_ids[product_id] = 1
 
     result = {
       "products": [],
+      "product_ids": len(product_ids)
     }
     
     for product_type, product_details in product_dict.items():
@@ -616,6 +622,32 @@ def get_inventory():
   except Exception as e:
     logging.error(e)
     raise e
+
+@app.route('/spm/get_products', methods = ['GET'])
+def  get_products():
+  try:
+    query = """
+      select pml.product_id, pml.product_type, ord.challan_id, 
+      ord.recieved_quantity, ord.status
+      from order_recieved ord, project_master_list pml, purchase_order_details pod
+      where pod.order_comp_id = ord.order_comp_id
+      and pod.project_comp_id = pml.project_comp_id
+    """
+
+    query_result = DBUtil().execute_query(query)
+    result = {
+      "products": query_result
+    }
+    response = Response(json.dumps(result, default=str))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+    logging.info("Result: "+str(response))
+    return response
+  except Exception as e:
+    logging.error(e)
+    raise e
+
+
 
 @app.route('/')
 def home():
