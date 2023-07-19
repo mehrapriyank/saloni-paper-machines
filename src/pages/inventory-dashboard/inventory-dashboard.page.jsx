@@ -2,6 +2,28 @@ import { useEffect, useState, useContext} from "react";
 import { ProductTableCard } from "../../components/table-card/table-card.component";
 import { useRef } from "react";
 import { UserContext } from "../../contexts/user.context";
+import { data } from "jquery";
+import daterangepicker from "daterangepicker";
+
+//Download CSV of Javascript Array
+const exportToCsv = function( itemList) {
+  var CsvString = "";
+  itemList.forEach(function(RowItem, RowIndex) {
+    RowItem.forEach(function(ColItem, ColIndex) {
+      CsvString += ColItem + ',';
+    });
+    CsvString += "\r\n";
+  });
+  CsvString = "data:application/csv," + encodeURIComponent(CsvString);
+  var x = document.createElement("A");
+  
+  const csvName = `inventory_${Date.now()}.csv`;
+  x.setAttribute("href", CsvString );
+  x.setAttribute("download",csvName);
+  document.body.appendChild(x);
+  x.click();
+}
+
 export const InventoryDashboard = () => {
   const inventory = useRef([]);
   const [products, setProducts] = useState([]);
@@ -25,6 +47,19 @@ export const InventoryDashboard = () => {
     )()
   }, [])
 
+  const onClickExport = () => {
+    const itemList = [["product_type", "product_id", "recieved", "used", "dispatched", "quantity_type", "remaining"]];
+
+    products.map(({product_details}) => {
+      product_details.map(({product_type, product_id, recieved, used, dispatched, quantity_type}) => {
+        itemList.push([product_type, product_id, recieved, used || 0, dispatched || 0, quantity_type || "No's", recieved-(dispatched||0)]);
+      });
+    })
+    console.log(itemList);
+
+    exportToCsv(itemList);
+  }
+
   if (!currentUser){
     return ("");
   }
@@ -38,7 +73,15 @@ export const InventoryDashboard = () => {
                           <h3 className="page-title">Inventory Dashboard</h3>
                       </div>
                   </div>
+                  <div className="col-sm-8">
+                    <div className="page-title-box text-sm-end">
+                      <div className="btn-group mt-3 ms-1">
+                        <button type="button" id="ordered-project" className="btn btn-outline-primary" onClick={(e) => onClickExport(e)}>Export To Excel</button>
+                      </div>
+                    </div>
+                  </div>
               </div>
+              
 
               <div className="row">
                 <div className="col-12">
@@ -58,7 +101,7 @@ export const InventoryDashboard = () => {
                                 
                                 <div id="product_id_card" className="col-sm-6 col-lg-5">
                                     <div className="card rounded-0 shadow-none m-0 border-start border-light">
-                                        <div className="card-body text-center">
+                                        <div className="card-body text-center" onClick={onClickExport}>
                                             <i className="ri-group-line text-muted font-24"></i>
                                             <h3><span>{productIDs}</span></h3>
                                             <p className="text-muted font-15 mb-0">Product Ids</p>
