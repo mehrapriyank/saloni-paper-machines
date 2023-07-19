@@ -2,8 +2,6 @@ import { useEffect, useState, useContext} from "react";
 import { ProductTableCard } from "../../components/table-card/table-card.component";
 import { useRef } from "react";
 import { UserContext } from "../../contexts/user.context";
-import { data } from "jquery";
-import daterangepicker from "daterangepicker";
 
 //Download CSV of Javascript Array
 const exportToCsv = function( itemList) {
@@ -48,7 +46,7 @@ export const InventoryDashboard = () => {
   }, [])
 
   const onClickExport = () => {
-    const itemList = [["product_type", "product_id", "recieved", "used", "dispatched", "quantity_type", "remaining"]];
+    const itemList = [["product_type", "product_id", "recieved", "used", "dispatched", "quantity_type", "stock"]];
 
     products.map(({product_details}) => {
       product_details.map(({product_type, product_id, recieved, used, dispatched, quantity_type}) => {

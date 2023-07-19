@@ -87,7 +87,7 @@ export const ProductTableCard = ({productType, productDetails}) => {
                         <span className="font-14 mt-1  badge badge-warning-lighten">{dispatched}</span>
                     </td>
                     <td className='col-xl-1 text-center'>
-                        <span className="text-muted font-13">Remaining</span><br/>
+                        <span className="text-muted font-13">Stock</span><br/>
                         <span className={`font-14 mt-1 badge badge-${recieved - dispatched > 0 ? "success":"danger"}-lighten`}>{recieved - dispatched}</span>
                     </td>
               
