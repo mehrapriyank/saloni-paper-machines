@@ -1,21 +1,15 @@
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../contexts/user.context";
+import $ from "jquery";
 
-import "datatables.net-bs5/css/dataTables.bootstrap5.min.css";
-import "datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css";
-
-import "datatables.net-bs5/js/dataTables.bootstrap5"
-import "datatables.net-buttons-bs5/js/buttons.bootstrap5"
-const $  = require('jquery');
-// require("datatables.net-buttons-bs5")()
-
-
-
+import DataTable from "datatables.net-bs5";
 
 export const ProductList = () => {
   const [products, setProducts] = useState([]);
   const {currentUser} = useContext(UserContext);
 
+
+  
   useEffect(() => {
     ( async () => {
       if (currentUser) {
@@ -27,14 +21,10 @@ export const ProductList = () => {
 
         await setProducts(response_data.products);
 
-        console.log(response_data);
 
-        $(document).ready(function () {
-          $("#datatable-buttons").dataTable({
-            dom: 'Blfrtip',
-            destroy: true
-          });
-        });
+        // $(function () {
+        //   $("#basic-datatable").DataTable();
+        // })
         
       }
     }
@@ -55,7 +45,7 @@ export const ProductList = () => {
               </div>
           </div>
           <div className="table-responsive table-centered">
-            <table id="datatable-buttons" className="table dt-responsive nowrap w-100">
+            <table id="basic-datatable" className="table dataTable dt-responsive nowrap w-100">
               <thead className="table-light">
                   <tr>
                       <th className="all">Product Type</th>
