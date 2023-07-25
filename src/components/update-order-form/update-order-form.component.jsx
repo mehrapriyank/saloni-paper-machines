@@ -180,7 +180,7 @@ export const UpdateOrderForm = () => {
                   <div>
                     {
                       productList? (productList.map((
-                        {product_type, product_id, project_id, project_name,  order_remark,expected_delivery, ordered_quantity,status, recieved_quantity,recieved_date, delivery_remark },
+                        {product_type, product_id, project_id, project_name,  order_remark,expected_delivery, ordered_quantity,status, recieved_quantity,recieved_date, delivery_remark, already_recieved },
                          index ) => {
                         return (
                           <div className="row mb-3" style={index < productList.length-1? {"borderBottom": "1px solid #d8d8d8"} : {}} key={index}>
@@ -213,16 +213,14 @@ export const UpdateOrderForm = () => {
                               <label htmlFor="oremark" className="form-label">Order Remarks</label>
                               <p>{order_remark? order_remark: "No remarks"}</p>
                             </div>
-                              
                             
-                            
-                            <div className="col-xl-1 mb-1 col-auto text-center">
+                            <div className="col-xl-2 mb-1 col-auto text-center">
                               <label htmlFor="recieved_quantity" className="form-label">#Recieved</label>
                               <input name='recieved_quantity' type="number" id="recieved_quantity" className="form-control" placeholder="Quantity" value={recieved_quantity} onChange={(e) => handleFormChange(e, index)} required/>
                             </div>
                             <div className="col-xl-2 mb-1 col-auto text-center">
                                 <label className="form-label">Recieved Date</label>
-                                <Form.Control name='recieved_date' type="date" placeholder="Date" value={recieved_date} onChange={(e) => handleFormChange(e, index)} required/>
+                                <Form.Control name='recieved_date' type="date" placeholder="Date" value={recieved_date} min="0" max={ordered_quantity-already_recieved} onChange={(e) => handleFormChange(e, index)} required/>
                             </div>
                             <div className="col-xl-2 mb-1 col-auto text-center">
                                 <label htmlFor="status" className="form-label">Status</label>

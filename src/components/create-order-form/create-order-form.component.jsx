@@ -22,12 +22,13 @@ export const CreateOrderForm = () => {
     "productOption": [{"label": "","value": ""}],
     "required_quantity": "",
     "already_ordered": "",
-    "product": ""
+    "product": "",
+    "max_order_limit": 999999
   };
 
   const [productList, setProductList] = useState([empty_product]);
   const [poNumber, setPONumber] = useState("");
-  const [isInputValid, setIsInputValid] = useState(false);
+  // const [isInputValid, setIsInputValid] = useState(false);
   const [project_master_list, set_project_master_list] = useState([]);
   const poNumbers = useRef([]);
   const [projectOptions, setProjectOptions] = useState([]);
@@ -35,7 +36,6 @@ export const CreateOrderForm = () => {
     ( async () => {
       if (currentUser) {
         const project_prod_map = {};
-        const product_options = {};
         const idMap = {};
         const pourlRequest = "http://127.0.0.1:80/spm/get_po_numbers";
         const poresponse =  await fetch(pourlRequest, {
@@ -68,9 +68,6 @@ export const CreateOrderForm = () => {
         const project_options = [];
         Object.keys(project_prod_map).forEach((project_name) => {
           project_options.push({value: project_name, label: project_name})
-          product_options[project_name] = project_prod_map[project_name].map(({product_type, product_id}) => {
-            return {"label": `${product_type} - ${product_id}`, "value": `${product_type} - ${product_id}`};
-          })
         })
         setProjectOptions(project_options);
         console.log("project option: ", project_options);
@@ -115,20 +112,20 @@ export const CreateOrderForm = () => {
     let data = [...productList];
     data[index][event.target.name] = event.target.value;
     const project_name = data[index]["project_name"] || "";
-    const prod = project_master_list[project_name]
-    if (event.target.name === "product_type")
-      data[index]["validProduct"] = project_name && (prod && prod.some(({product_type}) => product_type.toUpperCase() === event.target.value.toUpperCase()));
-    if (event.target.name === "product_id")
-      data[index]["validProductCode"] = project_name && (prod && prod.some(({product_id}) => product_id.toUpperCase() === event.target.value.toUpperCase()));
-    if (event.target.name === "ordered_quantity"){
-      const required_quantity = data[index]["required_quantity"];
-      const already_ordered = data[index]["already_ordered"];
-      if ( !required_quantity || (required_quantity-already_ordered < event.target.value) ){
-        alert(`Required: ${required_quantity}\nAlready Ordered: ${already_ordered}\n
-          New ordered can not be more than ${required_quantity-already_ordered}`);
-        data[index][event.target.name] = required_quantity-already_ordered;
-      }
-    }
+    // const prod = project_master_list[project_name]
+    // if (event.target.name === "product_type")
+    //   data[index]["validProduct"] = project_name && (prod && prod.some(({product_type}) => product_type.toUpperCase() === event.target.value.toUpperCase()));
+    // if (event.target.name === "product_id")
+    //   data[index]["validProductCode"] = project_name && (prod && prod.some(({product_id}) => product_id.toUpperCase() === event.target.value.toUpperCase()));
+    // if (event.target.name === "ordered_quantity"){
+    //   const required_quantity = data[index]["required_quantity"];
+    //   const already_ordered = data[index]["already_ordered"];
+    //   if ( !required_quantity || (required_quantity-already_ordered < event.target.value) ){
+    //     alert(`Required: ${required_quantity}\nAlready Ordered: ${already_ordered}\n
+    //       New ordered can not be more than ${required_quantity-already_ordered}`);
+    //     data[index][event.target.name] = required_quantity-already_ordered;
+    //   }
+    // }
     setProductList(data);
     // checkValidation()
   }
@@ -156,7 +153,7 @@ export const CreateOrderForm = () => {
   
   const addProduct = () => {
     setProductList([...productList, empty_product])
-    setIsInputValid(false);
+    // setIsInputValid(false);
   }
 
   const removeProduct = async (e, index) => {
@@ -170,7 +167,7 @@ export const CreateOrderForm = () => {
   const onProjectChange = (e, index) => {
     let data = [...productList];
     data[index] = empty_product;
-    if (e.value){
+    if (e?.value){
       const project_name = e.value;
       data[index]["project_name"] = project_name;
       data[index]["project_id"] = project_id_map[project_name];
@@ -189,15 +186,15 @@ export const CreateOrderForm = () => {
     let data = [...productList];
       data[index]["required_quantity"] = "";
       data[index]["already_ordered"] = "";
-    if (e.value){
+    if (e?.value){
       console.log(index, e.value);
       data[index]["product_type"]= e.value.split(" - ")[0];
       data[index]["product_id"]= e.value.split(" - ")[1];
       data[index]["product"] = e.value;
-
       const {required_quantity, already_ordered} = get_required_and_already_ordered_quantity(data[index]["project_name"],data[index]["product_id"],data[index]["product_type"]);
       data[index]["required_quantity"] = Number.parseInt(required_quantity);
       data[index]["already_ordered"] = already_ordered;
+      data[index]["max_order_limit"] = required_quantity - already_ordered;
       console.log(required_quantity, already_ordered);
     }
 
@@ -220,7 +217,7 @@ export const CreateOrderForm = () => {
                     </div>
                     {
                       poNumber? 
-                      productList.map(({product, project_name, productOption, ordered_quantity, expected_delivery, order_remark, required_quantity, already_ordered}, index ) => {
+                      productList.map(({product, project_name, productOption, ordered_quantity, expected_delivery, order_remark, required_quantity, already_ordered, max_order_limit}, index ) => {
                         return (
                           <div className="row mb-3" style={index < productList.length-1? {"borderBottom": "1px solid #d8d8d8"} : {}} key={index}>
                             <div className="col-xl-2 mb-3 col-auto">
@@ -250,17 +247,17 @@ export const CreateOrderForm = () => {
 
                             <div className="col-xl-1 mb-3 col-auto">
                               <label htmlFor="required_quantity" className="form-label">O/R</label>
-                              <Form.Control name='required_quantity' type="text" placeholder="Quantity" value={`${already_ordered}/${required_quantity}`} readOnly/>
+                              <Form.Control name='required_quantity' type="number" placeholder="Quantity" value={`${already_ordered}/${required_quantity}`} readOnly/>
                             </div>
                             
                             <div className="col-xl-2 mb-3 col-auto">
                               <label htmlFor="ordered_quantity" className="form-label">Order Quantity</label>
-                              <Form.Control name='ordered_quantity' type="number" placeholder="Quantity" value={ordered_quantity} onChange={(e) => handleFormChange(e, index)} required/>
+                              <Form.Control name='ordered_quantity' type="number" placeholder="Quantity" value={ordered_quantity} min="0" max={max_order_limit} onChange={(e) => handleFormChange(e, index)} required/>
                             </div>
       
                             <div className="col-xl-2 mb-3 col-auto">
                                 <label className="form-label">Delivery Date</label>
-                                <Form.Control name='expected_delivery' type="date" placeholder="Date of Birth" value={expected_delivery} onChange={(e) => handleFormChange(e, index)} required/>
+                                <Form.Control name='expected_delivery' type="date" placeholder="ETA" value={expected_delivery} onChange={(e) => handleFormChange(e, index)} required/>
                             </div>
                             {
                               productList.length > 1 ? (

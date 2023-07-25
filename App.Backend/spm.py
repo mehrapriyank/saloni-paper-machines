@@ -482,7 +482,7 @@ def get_order_details():
 
     if po_number:
       query = """
-        select po.po_number, pod.order_comp_id,
+        select po.order_id, po.po_number, pod.order_comp_id,
           p.project_name, pml.product_id, pml.product_type, pod.order_remark,
           pml.required_quantity, pod.ordered_quantity, pod.expected_delivery,
           ifnull(porders.total_ordered,0) total_ordered,
