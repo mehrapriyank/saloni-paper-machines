@@ -1,16 +1,18 @@
 import 'react-bootstrap/'
 import Select from 'react-select'
 import { Form } from 'react-bootstrap';
-import { useState } from 'react';
+import { useEffect, useState, useRef} from 'react';
 import { UserContext } from '../../contexts/user.context';
 import { useContext } from 'react';
+
 const qtypeOption = [
-  { "value": "Meter", "label": "Meter" },
+  { "value": "mm", "label": "mm" },
   { "value": "Kg", "label": "Kg" },
-  { "value": "", "label": "" },
+  { "value": "No's", "label": "No's" },
 ]
 export const ProjectMasterListForm = () => {
   const {currentUser} = useContext(UserContext);
+  const projectList = useRef([]);
   const empty_product = {
     "product_type": "",
     "product_id": "",
@@ -19,46 +21,74 @@ export const ProjectMasterListForm = () => {
     "quantity_type": ""
   }
 
+  useEffect( () => {
+    ( async () => {
+      if (currentUser) {
+        const urlRequest = "http://127.0.0.1:80/spm/get_projects";
+        const response =  await fetch(urlRequest, {
+          method: 'get', mode: 'cors', contentType: 'application/json',
+        });
+        const response_data = await response.json();
+        console.log(response_data);
+        
+        projectList.current = response_data.map(element => element["project_name"]);
+      }
+    })()
+  }, [])
+
   const [productList, setProductList] = useState([empty_product]);
   const [projectName, setProjectName] = useState("");
-  const [isInputValid, setIsInputValid] = useState(false);
-
+  // const [isInputValid, setIsInputValid] = useState(false);
   const cleanPage = () => {
     setProjectName("")
     setProductList([empty_product])
   }
 
+  const validateProjectName = (event) => {
+    if (projectList.current.some((e) => e === event.target.value)) {
+      alert("Project already exists");
+      setProjectName("");
+    }
+  }
+
   const handleProjectChange = (event) => {
-    setProjectName(event.target.value)
+    setProjectName(event.target.value);
   }
   const handleFormChange = (event, index) => {
     let data = [...productList];
     data[index][event.target.name] = event.target.value;
     setProductList(data);
-    checkValidation()
+    // checkValidation()
   }
 
-  const checkValidation = () => {
-    if ((projectName) && (productList)) {
-      const isNotValid = productList.some(({product_type, product_id, required_quantity, required_by_date}) => {
-        return !product_type || !product_id || !required_quantity || !required_by_date;
-      })
-      setIsInputValid(!isNotValid)
-    }
-    else {
-      setIsInputValid(false);
-    }
-  }
+  // const isNumber = (value) => {
+  //   if (typeof value === "string") {
+  //       return !isNaN(value);
+  //   }
+  // }
+
+  // const checkValidation = () => {
+  //   if ((projectName) && (productList)) {
+  //     let isNotValid = productList.some(({product_type, product_id, required_quantity, required_by_date}) => {
+  //       return !product_type || !product_id || !required_quantity || !required_by_date || !isNumber(required_quantity);
+  //     });
+  //     setIsInputValid(!isNotValid)
+  //   }
+  //   else {
+  //     setIsInputValid(false);
+  //   }
+  // }
+
   const addProduct = () => {
     setProductList([...productList, empty_product])
-    setIsInputValid(false);
+    // setIsInputValid(false);
   }
 
   const removeProduct = async (e, index) => {
     let data = [...productList];
     data.splice(index, 1)
     await setProductList(data)
-    checkValidation();
+    // checkValidation();
   }
 
   const handleQTypeChange = (event, index) => {
@@ -103,7 +133,7 @@ export const ProjectMasterListForm = () => {
 
                     <div className="col-xl-6 mb-3 col-auto">
                         <label htmlFor="poNum" className="form-label">Project ID</label>
-                        <Form.Control type="text" value={projectName} id="poNum" className="form-control" placeholder="Enter Project ID" onChange={(e)=>handleProjectChange(e)} required/>
+                        <Form.Control type="text" value={projectName} id="poNum" className="form-control" placeholder="Enter Project ID" onChange={(e)=>handleProjectChange(e)} onBlur={validateProjectName} required/>
                     </div>
                     {/* {
                       projectName? (
@@ -132,7 +162,7 @@ export const ProjectMasterListForm = () => {
                             </div>
                             <div className="col-xl-2 mb-3 col-auto">
                               <label htmlFor="required_quantity" className="form-label">Required Quantity</label>
-                              <Form.Control name='required_quantity' type="text" placeholder="Quantity" value={required_quantity} onChange={(e) => handleFormChange(e, index)} required/>
+                              <Form.Control name='required_quantity' type="number" placeholder="Quantity" value={required_quantity} onChange={(e) => handleFormChange(e, index)} required/>
                             </div>
                             <div className="col-xl-2 mb-1 col-auto">
                                 <label htmlFor="status" className="form-label">Quantity Type</label>
@@ -164,7 +194,7 @@ export const ProjectMasterListForm = () => {
                     
                     <div className="row">
                         <div className="mb-1 mt-3 col-auto"><button className="btn btn-light px-5" type='button' onClick={cleanPage}>Cancel</button></div>
-                        <div className="mb-1 mt-3 col-auto"><button className={`btn px-5 px-sm-15 ${isInputValid? "btn-primary":"btn-outline-primary disabled"}`} type="button" data-bs-toggle="modal" data-bs-target="#standard-modal">Submit</button></div>
+                        <div className="mb-1 mt-3 col-auto"><button className={`btn px-5 px-sm-15 btn-primary`} type="button" data-bs-toggle="modal" data-bs-target="#standard-modal">Submit</button></div>
                     </div>
 
                     <div id="standard-modal" className="modal fade" tabIndex="-1" role="dialog" aria-labelledby="standard-modalLabel" aria-hidden="true">

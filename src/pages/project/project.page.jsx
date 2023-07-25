@@ -15,7 +15,7 @@ export const Project = () => {
   const { project} = useParams();
   const [projectDetails, setProjectDetails] = useState([]);
   const [editProject, setEditProject ] = useState(false);
-  const [isInputValid, setIsInputValid] = useState(false);
+  // const [isInputValid, setIsInputValid] = useState(false);
   const [projectID, setProjectID] = useState("");
   const empty_product = {
     "project_id" : projectID,
@@ -51,33 +51,49 @@ export const Project = () => {
   
   const handleFormChange = (event, index) => {
     let data = [...projectDetails];
-    data[index][event.target.name] = event.target.value;
-    data[index]["isUpdated"] = true;
-    setProjectDetails(data);
-    checkValidation()
-  }
-
-  const checkValidation = () => {
-    if (projectDetails) {
-      const isNotValid = projectDetails.some(({product_type, product_id, required_quantity, required_by_date}) => {
-        return !product_type || !product_id || !required_quantity || !required_by_date;
-      })
-      setIsInputValid(!isNotValid)
+    if (event.target.name === "used_quantity") {
+      if(event.target.value > data[index]["recieved_quantity"]) {
+        alert(`Used can not be more that recieved (${data[index]["recieved_quantity"] || 0})`);
+        // data[index] = data[index]["used_quantity"];
+      }
+      else {
+        data[index][event.target.name] = event.target.value;
+        data[index]["isUpdated"] = true;
+        setProjectDetails(data);
+      }
+    }
+    else if (event.target.name === "dispatched_quantity") {
+      if(event.target.value > data[index]["used_quantity"]) {
+        alert(`Dispatched can not be more that Used (${data[index]["used_quantity"]|| 0})`);
+        // event.target.value = data[index]["dispatched_quantity"];
+      }
+      else {
+        data[index][event.target.name] = event.target.value;
+        data[index]["isUpdated"] = true;
+        setProjectDetails(data);
+      }
     }
     else {
-      setIsInputValid(false);
+      data[index][event.target.name] = event.target.value;
+      data[index]["isUpdated"] = true;
+      setProjectDetails(data);
     }
+    
+    // checkValidation()
   }
+
+  const validateQuantity = (event, index) => {
+  }
+
   const addProduct = () => {
     setProjectDetails([...projectDetails, empty_product])
-    setIsInputValid(false);
+    // setIsInputValid(false);
   }
 
   const removeProduct = async (e, index) => {
     let data = [...projectDetails];
     data.splice(index, 1)
-    await setProjectDetails(data)
-    checkValidation();
+    await setProjectDetails(data);
   }
 
   const handleQTypeChange = (event, index) => {
@@ -90,7 +106,6 @@ export const Project = () => {
     }
     setProjectDetails(data);
     data[index]["isUpdated"] = true;
-    checkValidation();
   }
 
 
@@ -166,38 +181,38 @@ export const Project = () => {
                                 
                                 <div className="col-xl-2 mb-2 col-auto">
                                     <label htmlFor="product_type" className="form-label">Product Type</label>
-                                    <Form.Control name='product_type' className={ editProject && !project_comp_id ? "border border-primary" : ""} type="text" placeholder="Product" value={product_type} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject || project_comp_id}/>
+                                    <Form.Control name='product_type' className={ editProject && !project_comp_id ? "border border-primary" : ""} type="text" placeholder="Product" value={product_type} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject || project_comp_id} required/>
                                 </div>
                                 <div className="col-xl-2 mb-2 col-auto">
                                     <label htmlFor="product_id" className="form-label">Product Code</label>
-                                    <Form.Control name='product_id' className={ editProject && !project_comp_id ? "border border-primary" : ""} type="text" placeholder="Product ID" value={product_id} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject || project_comp_id}/>
+                                    <Form.Control name='product_id' className={ editProject && !project_comp_id ? "border border-primary" : ""} type="text" placeholder="Product ID" value={product_id} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject || project_comp_id} required/>
                                 </div>
                                 <div className="col-xl-1 mb-2 col-auto">
                                   <label htmlFor="required_quantity" className="form-label">Required</label>
-                                  <Form.Control name='required_quantity' className={ editProject ? 'border border-primary' : ""} type="text" placeholder="Req Quantity" value={required_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
+                                  <Form.Control name='required_quantity' className={ editProject ? 'border border-primary' : ""} type="number" placeholder="Req Quantity" value={required_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject} required/>
                                 </div>
                                 <div className="col-xl-2 mb-2 col-auto">
                                   <label htmlFor="quantity_type" className="form-label">QType</label>
-                                  <Select name='quantity_type' value={{"label": quantity_type}} options={qtypeOption} isSearchable={true} isClearable={true} onChange={(s)=>handleQTypeChange(s, index)} isDisabled={!editProject}></Select>
+                                  <Select name='quantity_type' value={{"label": quantity_type}} options={qtypeOption} isSearchable={true} isClearable={true} onChange={(s)=>handleQTypeChange(s, index)} isDisabled={!editProject} required></Select>
                                 </div>
                                 <div className="col-xl-2 mb-2 col-auto">
                                     <label className="form-label">Req Date</label>
-                                    <Form.Control name='required_by_date' className={ editProject ? 'border border-primary' : ""} type="date" placeholder="Required By" value={required_by_date} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
+                                    <Form.Control name='required_by_date' className={ editProject ? 'border border-primary' : ""} type="date" placeholder="Required By" value={required_by_date} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject} required/>
                                     {/* <p name='required_by_date'> {required_by_date}</p> */}
                                 </div>
                                 { project_comp_id? (
                                   <Fragment>
                                     <div className="col-xl-1 mb-2 col-auto">
-                                      <label htmlFor="used_quantity" className="form-label">Recieved</label>
-                                      <Form.Control name='used_quantity' type="text" placeholder="Used" value={recieved_quantity || 0} readOnly/>
+                                      <label htmlFor="recieved_quantity" className="form-label">Recieved</label>
+                                      <Form.Control name='recieved_quantity' type="text" placeholder="Used" value={recieved_quantity || 0} readOnly/>
                                     </div>
                                     <div className="col-xl-1 mb-2 col-auto">
                                       <label htmlFor="used_quantity" className="form-label">Used</label>
-                                      <Form.Control name='used_quantity' className={ editProject ? 'border border-primary' : ""} type="text" placeholder="Used" value={used_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
+                                      <Form.Control name='used_quantity' className={ editProject ? 'border border-primary' : ""} type="number" placeholder="Used" value={used_quantity} onChange={(e) => handleFormChange(e, index)} onBlur={(e)=> validateQuantity(e,index)} readOnly={!editProject} required/>
                                     </div>
                                     <div className="col-xl-1 mb-2 col-auto">
                                       <label htmlFor="dispatched_quantity" className="form-label">Dispatched</label>
-                                      <Form.Control name='dispatched_quantity' className={ editProject ? 'border border-primary' : ""} type="text" placeholder="Dispatched" value={dispatched_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
+                                      <Form.Control name='dispatched_quantity' className={ editProject ? 'border border-primary' : ""} type="number" placeholder="Dispatched" value={dispatched_quantity} onChange={(e) => handleFormChange(e, index)} onBlur={(e)=> validateQuantity(e,index)} readOnly={!editProject} required/>
                                     </div>
                                   </Fragment>
                                   ):"" 
@@ -230,7 +245,7 @@ export const Project = () => {
                           editProject? (
                             <div className="row">
                               <div className="mb-1 mt-3 col-auto"><button className="btn btn-light px-5" type='button' onClick={onEditClick}>Cancel</button></div>
-                              <div className="mb-1 mt-3 col-auto"><button className={`btn px-5 px-sm-15 ${isInputValid? "btn-primary":"btn-outline-primary disabled"}`} type="button" data-bs-toggle="modal" data-bs-target="#standard-modal">Submit</button></div>
+                              <div className="mb-1 mt-3 col-auto"><button className="btn px-5 px-sm-15 btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#standard-modal">Submit</button></div>
                             </div>
                           ): ""
                         }

@@ -7,14 +7,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useContext } from 'react';
 import { UserContext } from '../../contexts/user.context';
 
-function removeDup(arr) {
-  let result = []
-  arr.forEach((item, index) => { if (arr.indexOf(item) == index) result.push(item) });
-  return result;
-}
 export const CreateOrderForm = () => {
+  
   const {currentUser} = useContext(UserContext);
-  const project_dict = {};
+  const [project_id_map, set_project_id_map] = useState({});
   const empty_product = {
     "project_id" : "",
     "project_name" : "",
@@ -23,45 +19,61 @@ export const CreateOrderForm = () => {
     "expected_delivery": "",
     "product_type":"",
     "order_remark": "",
-    "validProduct": true,
-    "validProductCode": true
+    "productOption": [{"label": "","value": ""}],
+    "required_quantity": "",
+    "already_ordered": "",
+    "product": ""
   };
 
   const [productList, setProductList] = useState([empty_product]);
   const [poNumber, setPONumber] = useState("");
   const [isInputValid, setIsInputValid] = useState(false);
-  const project_master_list = useRef([]);
+  const [project_master_list, set_project_master_list] = useState([]);
+  const poNumbers = useRef([]);
   const [projectOptions, setProjectOptions] = useState([]);
   useEffect( () => {
     ( async () => {
       if (currentUser) {
-        const urlRequest = "http://127.0.0.1:80/spm/get_project_agg";
+        const project_prod_map = {};
+        const product_options = {};
+        const idMap = {};
+        const pourlRequest = "http://127.0.0.1:80/spm/get_po_numbers";
+        const poresponse =  await fetch(pourlRequest, {
+          method: 'get', mode: 'cors', contentType: 'application/json',
+        });
+        const poresponse_data = await poresponse.json();
+        console.log(poresponse_data);
+        
+        poNumbers.current = poresponse_data.map(element => element["po_number"]);
+
+        const urlRequest = "http://127.0.0.1:80/spm/get_all_required_products";
         const response =  await fetch(urlRequest, {
           method: 'get', mode: 'cors', contentType: 'application/json',
         });
         const response_data = await response.json();
         console.log(response_data);
         
-        response_data.forEach(({project_id, project_name, product_ids, product_types}) => {
-          const project = {};
-          project["project_id"] = project_id;
-          project["product_ids"] = removeDup(JSON.parse(product_ids));
-          project["product_types"] = removeDup(JSON.parse(product_types));
-          project["project_name"] = project_name;
-
-          project_dict[project_name] = project;
+        response_data.forEach(({project_id, project_name, product_id, product_type, required_quantity, already_ordered}) => {
+          if (project_name in project_prod_map)
+            project_prod_map[project_name].push({project_id, product_id, product_type, required_quantity, already_ordered });
+          else 
+            project_prod_map[project_name] = [{project_id, product_id, product_type, required_quantity, already_ordered }];
+          idMap[project_name] = project_id;
         });
-        project_master_list.current = project_dict;
-        
-        console.log(project_dict)
-        const project_options = [];
-        Object.keys(project_master_list.current).forEach((project_name) => {
-          project_options.push({value: project_name, label: project_name})
-        })
 
+        set_project_id_map(idMap);
+        set_project_master_list(project_prod_map);
+        
+        console.log(project_prod_map);
+        const project_options = [];
+        Object.keys(project_prod_map).forEach((project_name) => {
+          project_options.push({value: project_name, label: project_name})
+          product_options[project_name] = project_prod_map[project_name].map(({product_type, product_id}) => {
+            return {"label": `${product_type} - ${product_id}`, "value": `${product_type} - ${product_id}`};
+          })
+        })
         setProjectOptions(project_options);
         console.log("project option: ", project_options);
-        console.log(project_dict)
       }
     })()
   }, [])
@@ -74,17 +86,51 @@ export const CreateOrderForm = () => {
   const handlePOChange = (event) => {
     setPONumber(event.target.value)
   }
+
+  const validatePONumber = (event) => {
+    if (poNumbers.current.some((e) => e === event.target.value)) {
+      alert("PO Number already exists");
+      setPONumber("");
+    }
+  }
+
+  const get_required_and_already_ordered_quantity = (project_name, pid, ptype) => {
+    const products = project_master_list[project_name];
+    for (let index in products) {
+      const {product_type, product_id, required_quantity, already_ordered} = products[index];
+      if (product_type == ptype && product_id == pid) {
+        return {
+          "required_quantity": Number.parseInt(required_quantity),
+          "already_ordered": Number.parseInt(already_ordered)
+        };
+      }
+    }
+    return {
+      "required_quantity":0,
+      "already_ordered": 0
+    };
+  }
+
   const handleFormChange = (event, index) => {
     let data = [...productList];
     data[index][event.target.name] = event.target.value;
     const project_name = data[index]["project_name"] || "";
-    const prod = project_master_list.current[project_name]
+    const prod = project_master_list[project_name]
     if (event.target.name === "product_type")
-      data[index]["validProduct"] = project_name && (prod && prod.product_types.some((product) => product === event.target.value.toUpperCase()));
+      data[index]["validProduct"] = project_name && (prod && prod.some(({product_type}) => product_type.toUpperCase() === event.target.value.toUpperCase()));
     if (event.target.name === "product_id")
-      data[index]["validProductCode"] = project_name && (prod && prod.product_ids.some((product) => product === event.target.value.toUpperCase()));
+      data[index]["validProductCode"] = project_name && (prod && prod.some(({product_id}) => product_id.toUpperCase() === event.target.value.toUpperCase()));
+    if (event.target.name === "ordered_quantity"){
+      const required_quantity = data[index]["required_quantity"];
+      const already_ordered = data[index]["already_ordered"];
+      if ( !required_quantity || (required_quantity-already_ordered < event.target.value) ){
+        alert(`Required: ${required_quantity}\nAlready Ordered: ${already_ordered}\n
+          New ordered can not be more than ${required_quantity-already_ordered}`);
+        data[index][event.target.name] = required_quantity-already_ordered;
+      }
+    }
     setProductList(data);
-    checkValidation()
+    // checkValidation()
   }
 
   const submit = async (e) => {
@@ -107,17 +153,7 @@ export const CreateOrderForm = () => {
     cleanPage();
   }
 
-  const checkValidation = () => {
-    if ((poNumber) && (productList)) {
-      const isNotValid = productList.some(({product_id, project_name, ordered_quantity, expected_delivery, product_type}) => {
-        return !product_id || !project_name || !product_type || !ordered_quantity || !expected_delivery;
-      })
-      setIsInputValid(!isNotValid)
-    }
-    else {
-      setIsInputValid(false);
-    }
-  }
+  
   const addProduct = () => {
     setProductList([...productList, empty_product])
     setIsInputValid(false);
@@ -125,22 +161,47 @@ export const CreateOrderForm = () => {
 
   const removeProduct = async (e, index) => {
     let data = [...productList];
-    data.splice(index, 1)
+    data.splice(index, 1);
+    console.log("on removing", data);
     await setProductList(data)
-    checkValidation();
+    // checkValidation();
   }
 
   const onProjectChange = (e, index) => {
     let data = [...productList];
-    if (! e){
-      data[index]["project_name"] = "";
+    data[index] = empty_product;
+    if (e.value){
+      const project_name = e.value;
+      data[index]["project_name"] = project_name;
+      data[index]["project_id"] = project_id_map[project_name];
+      data[index]["productOption"] = project_master_list[project_name].map((e) => {
+        return {"label": `${e.product_type} - ${e.product_id}`, "value": `${e.product_type} - ${e.product_id}`};
+      })
+
+      // data[index]["productOption"] = productOptions[project_name];
     }
-    else{
-      data[index]["project_name"] = e.value;
-      data[index]["project_id"] = project_master_list.current[e.value]['project_id'];
-    }
+    console.log(data[index]);
     setProductList(data);
-    checkValidation()
+    // checkValidation()
+  }
+
+  const onProductChange = (e, index) => {
+    let data = [...productList];
+      data[index]["required_quantity"] = "";
+      data[index]["already_ordered"] = "";
+    if (e.value){
+      console.log(index, e.value);
+      data[index]["product_type"]= e.value.split(" - ")[0];
+      data[index]["product_id"]= e.value.split(" - ")[1];
+      data[index]["product"] = e.value;
+
+      const {required_quantity, already_ordered} = get_required_and_already_ordered_quantity(data[index]["project_name"],data[index]["product_id"],data[index]["product_type"]);
+      data[index]["required_quantity"] = Number.parseInt(required_quantity);
+      data[index]["already_ordered"] = already_ordered;
+      console.log(required_quantity, already_ordered);
+    }
+
+    setProductList(data);
   }
 
   return (
@@ -155,31 +216,48 @@ export const CreateOrderForm = () => {
 
                     <div className="col-xl-6 mb-3 col-auto">
                         <label htmlFor="poNum" className="form-label">PO Number</label>
-                        <Form.Control type="text" value={poNumber} id="poNum" className="form-control" placeholder="Enter PO Number" onChange={(e)=>handlePOChange(e)} required/>
+                        <Form.Control type="text" value={poNumber} id="poNum" className="form-control" placeholder="Enter PO Number" onChange={(e)=>handlePOChange(e)} onBlur={validatePONumber} required/>
                     </div>
                     {
                       poNumber? 
-                      productList.map(({product_id, project_name, ordered_quantity, expected_delivery, product_type, order_remark, validProduct, validProductCode,}, index ) => {
+                      productList.map(({product, project_name, productOption, ordered_quantity, expected_delivery, order_remark, required_quantity, already_ordered}, index ) => {
                         return (
                           <div className="row mb-3" style={index < productList.length-1? {"borderBottom": "1px solid #d8d8d8"} : {}} key={index}>
                             <div className="col-xl-2 mb-3 col-auto">
                                 <label htmlFor="project_name" className="form-label">Project</label>
-                                <Select name='project_name' options={projectOptions} isSearchable={true} isClearable={true} onChange={(s)=>onProjectChange(s, index)} required></Select>
+                                {/* <Form.Select value={project_name} onChange={(e) => onProjectChange(e, index)}>
+                                  <option value=""></option>
+                                  {projectOptions.map((opt) => <option value={opt.label}> {opt.value} </option>)}
+                                </Form.Select> */}
+                                <Select name='project_name' options={projectOptions} value={{"label": project_name}} isSearchable={true} isClearable={true} onChange={(s)=>onProjectChange(s, index)} required></Select>
                                 {/* <Form.Control name='project' type="text" placeholder="Project" value={project} onChange={(e) => handleFormChange(e, index)} required/> */}
 
                             </div>
-                            <div className="col-xl-2 mb-3 col-auto">
-                                <label htmlFor="product_type" className="form-label">Product Type</label>
-                                <Form.Control className={ validProduct ? '' : "border border-danger"} name='product_type' type="text" placeholder="Product" value={product_type} onChange={(e) => handleFormChange(e, index)} required/>
+
+                            <div className="col-xl-3 mb-3 col-auto">
+                                <label htmlFor="product" className="form-label">Product</label>
+                                <Select name='product' value={{"label": product}}
+                                options={productOption} isSearchable={true} isClearable={true}
+                                 onChange={(s)=>onProductChange(s, index)} required></Select>
+                                 
+                                {/* <Form.Select value={product} onChange={(e) => onProductChange(e, index)}>
+                                  <option value=""></option>
+                                  {productOption.map((opt) => <option value={opt.label}> {opt.value} </option>)}
+                                </Form.Select> */}
+                                {/* <Form.Control name='product' type="text" placeholder="Project" value={project} onChange={(e) => handleFormChange(e, index)} required/> */}
+
                             </div>
-                            <div className="col-xl-2 mb-3 col-auto">
-                                <label htmlFor="product_id" className="form-label">Product Code</label>
-                                <Form.Control className={ validProductCode ? '' : "border border-danger"} name='product_id' type="text" placeholder="Code" value={product_id} onChange={(e) => handleFormChange(e, index)} required/>
+
+                            <div className="col-xl-1 mb-3 col-auto">
+                              <label htmlFor="required_quantity" className="form-label">O/R</label>
+                              <Form.Control name='required_quantity' type="text" placeholder="Quantity" value={`${already_ordered}/${required_quantity}`} readOnly/>
                             </div>
+                            
                             <div className="col-xl-2 mb-3 col-auto">
-                              <label htmlFor="ordered_quantity" className="form-label">Quantity</label>
-                              <Form.Control name='ordered_quantity' type="text" placeholder="Quantity" value={ordered_quantity} onChange={(e) => handleFormChange(e, index)} required/>
+                              <label htmlFor="ordered_quantity" className="form-label">Order Quantity</label>
+                              <Form.Control name='ordered_quantity' type="number" placeholder="Quantity" value={ordered_quantity} onChange={(e) => handleFormChange(e, index)} required/>
                             </div>
+      
                             <div className="col-xl-2 mb-3 col-auto">
                                 <label className="form-label">Delivery Date</label>
                                 <Form.Control name='expected_delivery' type="date" placeholder="Date of Birth" value={expected_delivery} onChange={(e) => handleFormChange(e, index)} required/>
@@ -212,7 +290,7 @@ export const CreateOrderForm = () => {
                     <div className="row">
                         
                         <div className="mb-1 mt-3 col-auto"><button className="btn btn-light px-5" type='button' onClick={cleanPage}>Cancel</button></div>
-                        <div className="mb-1 mt-3 col-auto"><button className={`btn px-5 px-sm-15 ${isInputValid? "btn-primary":"btn-outline-primary disabled"}`} type="button" data-bs-toggle="modal" data-bs-target="#standard-modal">Submit</button></div>
+                        <div className="mb-1 mt-3 col-auto"><button className={`btn px-5 px-sm-15 btn-primary`} type="button" data-bs-toggle="modal" data-bs-target="#standard-modal">Submit</button></div>
                     </div>
 
                     <div id="standard-modal" className="modal fade" tabIndex="-1" role="dialog" aria-labelledby="standard-modalLabel" aria-hidden="true">

@@ -7,15 +7,10 @@ import { useParams } from 'react-router-dom';
 import { UserContext } from '../../contexts/user.context';
 import { useContext } from 'react';
 
-function removeDup(arr) {
-  let result = []
-  arr.forEach((item, index) => { if (arr.indexOf(item) === index) result.push(item) });
-  return result;
-}
-
 export const Order = () => {
   const {currentUser} = useContext(UserContext);
-  const project_dict = {};
+  const project_prod_map = {};
+  const project_id_map = {};
   const [orderDetails, setorderDetails] = useState([]);
   const [isInputValid, setIsInputValid] = useState(true);
   const project_master_list = useRef([])
@@ -42,25 +37,23 @@ export const Order = () => {
   useEffect( () => {
     ( async () => {
       if (currentUser) {
-        const urlRequest = "http://127.0.0.1:80/spm/get_project_agg";
+        const urlRequest = "http://127.0.0.1:80/spm/get_all_required_products";
         const response =  await fetch(urlRequest, {
           method: 'get', mode: 'cors', contentType: 'application/json',
         });
         const response_data = await response.json();
         console.log(response_data);
         
-        response_data.forEach(({project_id, project_name, product_ids, product_types}) => {
-          const project = {};
-          project["project_id"] = project_id;
-          project["product_ids"] = removeDup(JSON.parse(product_ids));
-          project["product_types"] = removeDup(JSON.parse(product_types));
-          project["project_name"] = project_name;
-
-          project_dict[project_name] = project;
+        response_data.forEach(({project_id, project_name, product_id, product_type, required_quantity, already_ordered}) => {
+          if (project_name in project_prod_map)
+            project_prod_map[project_name].push({project_id, product_id, product_type, required_quantity, already_ordered });
+          else 
+            project_prod_map[project_name] = [{project_id, product_id, product_type, required_quantity, already_ordered }];
+          project_id_map[project_name] = project_id;
         });
-        project_master_list.current = project_dict;
+        project_master_list.current = project_prod_map;
         
-        console.log(project_dict)
+        console.log(project_prod_map);
         const project_options = [];
         Object.keys(project_master_list.current).forEach((project_name) => {
           project_options.push({value: project_name, label: project_name})
@@ -94,16 +87,45 @@ export const Order = () => {
     )()
   }, [editOrder])
 
+  const get_required_and_already_ordered_quantity = (project_name, pid, ptype) => {
+    const products = project_master_list.current[project_name];
+    for (let index in products) {
+      const {product_type, product_id, required_quantity, already_ordered} = products[index];
+      if (product_type == ptype && product_id == pid) {
+        return {
+          "required_quantity": Number.parseInt(required_quantity),
+          "already_ordered": Number.parseInt(already_ordered)
+        };
+      }
+    }
+    return {
+      "required_quantity":0,
+      "already_ordered": 0
+    };
+  }
+
+
   const handleFormChange = (event, index) => {
     let data = [...orderDetails];
     data[index][event.target.name] = event.target.value;
-    data[index]["isUpdated"] = true;
     const project_name = data[index]["project_name"] || "";
     const prod = project_master_list.current[project_name]
-    if (event.target.name === "product_type")
-      data[index]["validProduct"] = project_name && (prod && prod.product_types.some((product) => product === event.target.value.toUpperCase()));
-    if (event.target.name === "product_id")
-      data[index]["validProductCode"] = project_name && (prod && prod.product_ids.some((product) => product === event.target.value.toUpperCase()));
+    if (event.target.name === "product_type"){
+      data[index]["validProduct"] = project_name && (prod && prod.some(({product_type}) => product_type.toUpperCase() === event.target.value.toUpperCase()));
+      // checkandstopDuplicate(data[index]);
+    }
+    if (event.target.name === "product_id"){
+      data[index]["validProductCode"] = project_name && (prod && prod.some(({product_id}) => product_id.toUpperCase() === event.target.value.toUpperCase()));
+      // checkandstopDuplicate(data[index]);
+    }
+    if (event.target.name === "ordered_quantity"){
+      const {required_quantity, already_ordered} = get_required_and_already_ordered_quantity(data[index]["project_name"],data[index]["product_id"],data[index]["product_type"]);
+      if (Number.parseInt(event.target.value)+already_ordered > required_quantity){
+        alert(`Required: ${required_quantity}\nAlready Ordered: ${already_ordered}\n
+          New ordered can not be more than ${required_quantity-already_ordered}`);
+        data[index][event.target.name] = required_quantity-already_ordered;
+      }
+    }
     setorderDetails(data);
     checkValidation();
   }

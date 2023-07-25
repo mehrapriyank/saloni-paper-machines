@@ -53,7 +53,6 @@ export const UpdateOrderForm = () => {
       const response_data = await response.json()
       //console.log("Purchase order details: "+response_data)
 
-      const order_id = response_data.order_id;
       const order_items = response_data.order_items;
       // const product_list = response_data.product_details
       //                     .map((prod_detail) => {
@@ -99,6 +98,13 @@ export const UpdateOrderForm = () => {
     else {
       let data = [...productList];
       data[index][event.target.name] = event.target.value;
+      if (event.target.name === "recieved_quantity") {
+        if (Number.parseInt(event.target.value) + Number.parseInt(data[index]["already_recieved"]) > data[index]["ordered_quantity"]) {
+          alert(`Ordered: ${data[index]["ordered_quantity"]}\nAlready Recieved: ${data[index]["already_recieved"]}\n
+          New recieved can not be more than ${data[index]["ordered_quantity"]-data[index]["already_recieved"]}`);
+          data[index][event.target.name] = data[index]["ordered_quantity"]-data[index]["already_recieved"];
+        }
+      }
       setProductList(data);
     }
   }
@@ -212,7 +218,7 @@ export const UpdateOrderForm = () => {
                             
                             <div className="col-xl-1 mb-1 col-auto text-center">
                               <label htmlFor="recieved_quantity" className="form-label">#Recieved</label>
-                              <input name='recieved_quantity' type="text" id="recieved_quantity" className="form-control" placeholder="Quantity" value={recieved_quantity} onChange={(e) => handleFormChange(e, index)} required/>
+                              <input name='recieved_quantity' type="number" id="recieved_quantity" className="form-control" placeholder="Quantity" value={recieved_quantity} onChange={(e) => handleFormChange(e, index)} required/>
                             </div>
                             <div className="col-xl-2 mb-1 col-auto text-center">
                                 <label className="form-label">Recieved Date</label>
