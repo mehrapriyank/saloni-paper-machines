@@ -12,9 +12,10 @@ export const Order = () => {
   const project_prod_map = {};
   const [project_id_map, set_project_id_map] = useState({});
   const [orderDetails, setorderDetails] = useState([]);
-  const [isInputValid, setIsInputValid] = useState(true);
+  // const [isInputValid, setIsInputValid] = useState(true);
   const [project_master_list, set_project_master_list] = useState([]);
   const [projectOptions, setProjectOptions] = useState([]);
+  const [productOptions, setProductOptions] = useState({});
   const [editOrder, setEditOrder ] = useState(false);
   const [originalList, setOriginalList] = useState([]);
   const [orderID, setOrderId] = useState([]);
@@ -37,19 +38,20 @@ export const Order = () => {
     "total_ordered": "",
     "product": "",
     "ordered_without_this": "",
-    "order_max_limit": ""
+    "order_max_limit": 999999
   };
 
   useEffect( () => {
     ( async () => {
       if (currentUser) {
         const idMap = {};
+        const product_options = {};
         const urlRequest = "http://127.0.0.1:80/spm/get_all_required_products";
         const response =  await fetch(urlRequest, {
           method: 'get', mode: 'cors', contentType: 'application/json',
         });
         const response_data = await response.json();
-        console.log(response_data);
+        console.log("PML: ", response_data);
         
         response_data.forEach(({project_id, project_name, product_id, product_type, required_quantity, already_ordered}) => {
           if (project_name in project_prod_map)
@@ -62,13 +64,21 @@ export const Order = () => {
         set_project_id_map(idMap);
         set_project_master_list(project_prod_map);
         
-        console.log(project_prod_map);
         const project_options = [];
         Object.keys(project_prod_map).forEach((project_name) => {
           project_options.push({value: project_name, label: project_name})
+          const opts = project_prod_map[project_name].map(({product_id, product_type}) => {
+            return {
+              "label": `${product_type} - ${product_id}`,
+              "value": `${product_type} - ${product_id}`
+            }
+          })
+          product_options[project_name] = [{"label": "","value": ""}, ...opts]; 
         })
+        setProductOptions(product_options);
         setProjectOptions(project_options);
-        console.log("project option: ", project_options);
+        console.log("Product Options: ", product_options);
+        console.log("Project Options: ", project_options);
 
         const ourlRequest = "http://127.0.0.1:80/spm/get_order_details?" + new URLSearchParams({
           "po_number": poNumber
@@ -78,10 +88,9 @@ export const Order = () => {
         })
 
         const oresponse_data = await oresponse.json();
-        console.log("purchase_order: ",oresponse_data)
+        console.log("Purchase_Order_Details: ",oresponse_data)
         setOrderId(oresponse_data.order_id)
         const orderDet = oresponse_data.order_items;
-        console.log(orderDet);
 
         orderDet.forEach((order) => {
           order["isUpdated"] = false;
@@ -98,7 +107,7 @@ export const Order = () => {
     )()
   }, [editOrder])
 
-  const get_required_and_already_ordered_quantity = (project_name, pid, ptype) => {
+  const get_r_o_quantity = (project_name, pid, ptype) => {
     const products = project_master_list[project_name];
     for (let index in products) {
       const {product_type, product_id, required_quantity, already_ordered} = products[index];
@@ -118,25 +127,8 @@ export const Order = () => {
   const handleFormChange = (event, index) => {
     let data = [...orderDetails];
     data[index][event.target.name] = event.target.value;
-    // if (event.target.name === "ordered_quantity"){
-    //   const required_quantity = data[index]["required_quantity"];
-    //   const total_ordered = data[index]["total_ordered"];
-    //   // if (data[index]["order_comp_id"]) {
-    //   //   // order getting updated
-    //   //   if ( !required_quantity || required_quantity-data[index]["ordered_without_this"]< event.target.value) {
-    //   //     alert(`Required: ${required_quantity}\nAlready Ordered: ${total_ordered}\nNew ordered can not be more than ${required_quantity-data[index]["ordered_without_this"]}`);
-    //   //     data[index][event.target.name] = required_quantity-data[index]["ordered_without_this"];
-    //   //   }
-    //   // }
-    //   // else if ( !required_quantity || (required_quantity-total_ordered < event.target.value) ){
-    //   //   alert(`Required: ${required_quantity}\nAlready Ordered: ${total_ordered}\n
-    //   //     New ordered can not be more than ${required_quantity-total_ordered}`);
-    //   //   data[index][event.target.name] = required_quantity-total_ordered;
-    //   // }
-    // }
     data[index]["isUpdated"] = true;
     setorderDetails(data);
-    // checkValidation();
   }
 
   const onEditClick = () => {
@@ -150,11 +142,12 @@ export const Order = () => {
     const data = {
       "order_id": orderID,
       "po_number": poNumber, 
-      "orderDetails": orderDetails.filter((item) => item.isUpdated === true),
+      "orderDetails": orderDetails.filter(
+        ({isUpdated, project_name, product_type, product_id}) => isUpdated && project_name && product_type && product_id),
       "updated_on": Date.now(),
       "updated_by": currentUser.id
     }
-    console.log(data);
+    console.log("Sending Data: ", data);
     const urlRequest = "http://127.0.0.1:80/spm/update_order";
     const response =  await fetch(urlRequest, {
         headers: new Headers({'content-type': 'application/json'}),
@@ -169,15 +162,13 @@ export const Order = () => {
     setEditOrder(false);
   }
   const addProduct = () => {
-    setorderDetails([...orderDetails, empty_product])
-    setIsInputValid(false);
+    setorderDetails([...orderDetails, empty_product]);
   }
 
   const removeProduct = async (e, index) => {
     let data = [...orderDetails];
     data.splice(index, 1)
     await setorderDetails(data)
-    // checkValidation();
   }
 
   const onProjectChange = (e, index) => {
@@ -187,37 +178,30 @@ export const Order = () => {
       const project_name = e.value;
       data[index]["project_name"] = project_name;
       data[index]["project_id"] = project_id_map[project_name];
-      data[index]["productOption"] = project_master_list[project_name].map((e) => {
-        return {"label": `${e.product_type} - ${e.product_id}`, "value": `${e.product_type} - ${e.product_id}`};
-      })
-
-      // data[index]["productOption"] = productOptions[project_name];
+      data[index]["productOption"] = [...productOptions[project_name]];
     }
-    console.log(data[index]);
     setorderDetails(data);
-    // checkValidation()
   }
 
   const onProductChange = (e, index) => {
     let data = [...orderDetails];
-      data[index]["required_quantity"] = "";
-      data[index]["total_ordered"] = "";
+    data[index]["product"] = "";
+    data[index]["product_type"] = "";
+    data[index]["product_id"] = "";
+    data[index]["required_quantity"] = "";
+    data[index]["total_ordered"] = "";
+    const project_name = data[index]["project_name"]
     if (e?.value){
-      console.log(index, e.value);
-      data[index]["product_type"]= e.value.split(" - ")[0];
-      data[index]["product_id"]= e.value.split(" - ")[1];
+      const product_type = data[index]["product_type"]= e.value.split(" - ")[0];
+      const product_id = data[index]["product_id"]= e.value.split(" - ")[1];
       data[index]["product"] = e.value;
-
-      const {required_quantity, total_ordered} = get_required_and_already_ordered_quantity(data[index]["project_name"],data[index]["product_id"],data[index]["product_type"]);
+      const {required_quantity, total_ordered} = get_r_o_quantity(project_name, product_id, product_type);
       data[index]["required_quantity"] = Number.parseInt(required_quantity);
       data[index]["total_ordered"] = total_ordered;
       data[index]["order_max_limit"] = required_quantity - total_ordered;
-      console.log(required_quantity, total_ordered);
     }
-
     setorderDetails(data);
   }
-
 
   return (
     <div className="content-page">
@@ -263,22 +247,8 @@ export const Order = () => {
                                       <Select name='product' value={{"label": product}}
                                       options={productOption} isSearchable={true} isClearable={true}
                                       onChange={(s)=>onProductChange(s, index)} isDisabled={!(editOrder && !order_comp_id)} required></Select>
-                                      
-                                      {/* <Form.Select value={product} onChange={(e) => onProductChange(e, index)}>
-                                        <option value=""></option>
-                                        {productOption.map((opt) => <option value={opt.label}> {opt.value} </option>)}
-                                      </Form.Select> */}
-                                      {/* <Form.Control name='product' type="text" placeholder="Project" value={project} onChange={(e) => handleFormChange(e, index)} required/> */}
-
                                   </div>
-                                  {/* <div className="col-xl-2 mb-3 col-auto">
-                                      <label htmlFor="product_type" className="form-label">Product Type</label>
-                                      <Form.Control className={ !editOrder || validProduct ? '' : "border border-danger"} name='product_type' type="text" placeholder="Product" value={product_type} onChange={(e) => handleFormChange(e, index)} readOnly={!editOrder || order_comp_id}/>
-                                  </div>
-                                  <div className="col-xl-2 mb-3 col-auto">
-                                      <label htmlFor="product_id" className="form-label">Product Code</label>
-                                      <Form.Control className={ !editOrder || validProductCode ? '' : "border border-danger"} name='product_id' type="text" placeholder="Code" value={product_id} onChange={(e) => handleFormChange(e, index)} readOnly={!editOrder || order_comp_id}/>
-                                  </div> */}
+                                  
                                   <div className="col-xl-2 mb-3 col-auto">
                                     <label htmlFor="ordered_quantity" className="form-label">Ordered Quantity</label>
                                     <Form.Control name='ordered_quantity' className={ !editOrder? '' : "border border-primary"} type="number" min="0" max={order_max_limit} placeholder="Quantity" value={ordered_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editOrder} required/>
