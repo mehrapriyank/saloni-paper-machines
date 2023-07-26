@@ -22,11 +22,18 @@ export const OrderList = () => {
         });
         const response_data = await response.json();
 
-        response_data.forEach(({po_number, product_ids, product_types, created_by, created_at}) => {
+        response_data.forEach(({po_number, product_ids, product_types, created_by, created_at, expected_deliverys}) => {
           const order_details = {};
           order_details["order_id"] = po_number;
           order_details["product_ids"] = removeDup(JSON.parse(product_ids));
           order_details["product_types"] = removeDup(JSON.parse(product_types));
+          order_details["urgent"] = JSON.parse(expected_deliverys).some((delivery) => {
+            const today = new Date();
+            const del_date = new Date(delivery);
+            const follow_up_date = new Date(del_date.setDate(today.getDate() - 20));
+            console.log({follow_up_date, delivery});
+            return follow_up_date <= today;
+          });
           // order_details["projects"] = removeDup(JSON.parse(projects));
           order_details["created_by"] = created_by;
           order_details["created_at"] = created_at;
@@ -35,7 +42,7 @@ export const OrderList = () => {
         });
         setProjects(order_list);
 
-        console.log(response_data);
+        console.log(order_list);
       }
     }
     )()
@@ -66,14 +73,14 @@ export const OrderList = () => {
                     {/* <th>Projects</th> */}
                     <th>Product Type(s)</th>
                     <th>Product ID(s)</th>
-                    <th>Created By</th>
-                    <th>Created At</th>
+                    {/* <th>Created On</th> */}
+                    <th>Follow Up</th>
                 </tr>
             </thead>
             <tbody>
               {
                 
-                projects.map(({order_id, product_ids, product_types, created_by,created_at }) => {
+                projects.map(({order_id, product_ids, product_types, created_at , urgent}) => {
                   return (
                     <tr key={order_id}>
                       <td><h5><Link to={`/orders/${order_id.split('/').join('--')}`} className="text-body">{order_id}</Link></h5></td>
@@ -86,8 +93,12 @@ export const OrderList = () => {
                       <td>{product_ids.map((element) => (
                         <span key={element} className="ms-1 badge badge-primary-lighten">{element}</span>
                       ))}</td>
-                      <td>{created_by}</td>
-                      <td>{created_at}</td>
+                      {/* <td>{created_at.split(" ")[0]}</td> */}
+                      {
+                        urgent? <td><span className="ms-1 badge badge-danger-lighten">Follow Up</span></td>
+                        :
+                        <td><span className="ms-1 badge badge-success-lighten">No Expected Delivery</span></td>
+                      }
                     </tr>
                   )
                 })

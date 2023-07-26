@@ -455,7 +455,8 @@ def get_po_aggregation():
     query = """
       select p.po_number, users.name created_by, p.created_at, 
       json_arrayagg(pml.product_id) as product_ids, 
-      json_arrayagg(pml.product_type) as product_types
+      json_arrayagg(pml.product_type) as product_types,
+      json_arrayagg(pod.expected_delivery) as expected_deliverys
       from purchase_orders p
       join purchase_order_details pod
       on pod.order_id = p.order_id
