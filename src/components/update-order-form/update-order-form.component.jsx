@@ -99,7 +99,7 @@ export const UpdateOrderForm = () => {
 
   const submit = async (event) => {
     const form = event.currentTarget;
-    if (form.checkValidity() === false) {
+    if (form.checkValidity() === false || !productList.some(({recieved_quantity, recieved_date, status}) => recieved_quantity && recieved_date && status)) {
       event.preventDefault();
       event.stopPropagation();
     } else {
@@ -107,9 +107,7 @@ export const UpdateOrderForm = () => {
       const prod_list = productList.map((product) => {
         let updated = false;
         const {order_comp_id, recieved_quantity, recieved_date, status, delivery_remark} = product;
-        // let total_recieved = parseInt(order_quantity)-parseInt(remaining_quantity)
         if (recieved_quantity && recieved_date && status && bill){
-          // total_recieved = total_recieved+parseInt(recieved_accepted);
           updated =  true;
         }
         return {order_comp_id,recieved_quantity,recieved_date, updated, status,delivery_remark};
@@ -129,8 +127,7 @@ export const UpdateOrderForm = () => {
       })
       const response_data = await response.json
       console.log("Response on submit" + response_data)
-      // cleanPage();
-      navigate("/products");
+      cleanPage();
     }
     setValidated(true);
     event.preventDefault();
@@ -165,7 +162,7 @@ export const UpdateOrderForm = () => {
                   <div>
                     {
                       productList? (productList.map((
-                        {product_type, product_id, project_id, project_name,  order_remark,expected_delivery, ordered_quantity,status, recieved_quantity,recieved_date, delivery_remark, already_recieved },
+                        {product_type, product_id, project_name,  order_remark,expected_delivery, ordered_quantity,status, recieved_quantity,recieved_date, delivery_remark, already_recieved },
                          index ) => {
                         return (
                           <div className="row mb-3" style={index < productList.length-1? {"borderBottom": "1px solid #d8d8d8"} : {}} key={index}>
@@ -200,6 +197,7 @@ export const UpdateOrderForm = () => {
                               <Form.Control name='recieved_quantity' type="number" id="recieved_quantity" 
                                   className="form-control" placeholder="Quantity" value={recieved_quantity} 
                                   isInvalid={recieved_quantity && recieved_quantity> Number.parseInt(ordered_quantity)-Number.parseInt(already_recieved)} 
+                                  required={(recieved_date || status) && !recieved_quantity}
                                   onChange={(e) => handleFormChange(e, index)}/>
                               <Form.Control.Feedback type="invalid">
                                   Please select a value between 0-{Number.parseInt(ordered_quantity)-Number.parseInt(already_recieved)}
@@ -207,11 +205,14 @@ export const UpdateOrderForm = () => {
                             </div>
                             <div className="col-xl-2 mb-1 col-auto text-center">
                                 <label className="form-label">Recieved Date</label>
-                                <Form.Control name='recieved_date' type="date" placeholder="Date" value={recieved_date} isInvalid={recieved_quantity && !recieved_date} onChange={(e) => handleFormChange(e, index)}/>
+                                <Form.Control name='recieved_date' type="date" placeholder="Date" value={recieved_date} 
+                                  onChange={(e) => handleFormChange(e, index)} 
+                                  required={recieved_quantity || status }/>
                             </div>
                             <div className="col-xl-2 mb-1 col-auto text-center">
                                 <label htmlFor="status" className="form-label">Status</label>
-                                <Select name='status' value={{"label": status}} options={statusOptions} isSearchable={true} isClearable={true} onChange={(s)=>handleStatusChange(s, index)}></Select>
+                                <Select name='status' value={{"label": status}} options={statusOptions} isSearchable={true} isClearable={true} 
+                                required= {recieved_quantity } onChange={(s)=>handleStatusChange(s, index)}></Select>
                             </div>
                             <div className="col-xl-6 mb-3 col-auto text-center">
                               <label htmlFor="delivery_remark" className="form-label">Delivery Remarks</label>

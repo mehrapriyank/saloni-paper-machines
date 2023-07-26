@@ -448,7 +448,6 @@ def get_project_items():
     logging.error(e)
     raise e
 
-
 # ------  get project aggregation --------
 @app.route('/spm/get_po_agg', methods = ['GET'])
 def get_po_aggregation():
