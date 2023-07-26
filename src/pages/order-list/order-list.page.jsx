@@ -31,7 +31,7 @@ export const OrderList = () => {
             const today = new Date();
             const del_date = new Date(delivery);
             const follow_up_date = new Date(del_date.setDate(today.getDate() - 20));
-            console.log({follow_up_date, delivery});
+            // console.log({follow_up_date, delivery});
             return follow_up_date <= today;
           });
           // order_details["projects"] = removeDup(JSON.parse(projects));
@@ -80,7 +80,7 @@ export const OrderList = () => {
             <tbody>
               {
                 
-                projects.map(({order_id, product_ids, product_types, created_at , urgent}) => {
+                projects.map(({order_id, product_ids, product_types, urgent}) => {
                   return (
                     <tr key={order_id}>
                       <td><h5><Link to={`/orders/${order_id.split('/').join('--')}`} className="text-body">{order_id}</Link></h5></td>

@@ -41,7 +41,8 @@ export const Order = () => {
     "total_ordered": "",
     "product": "",
     "ordered_without_this": "",
-    "order_max_limit": 999999
+    "order_max_limit": 999999,
+    "quantity_type": ""
   };
 
   useEffect( () => {
@@ -56,11 +57,11 @@ export const Order = () => {
         const response_data = await response.json();
         console.log("PML: ", response_data);
         
-        response_data.forEach(({project_id, project_name, product_id, product_type, required_quantity, already_ordered}) => {
+        response_data.forEach(({project_id, project_name, product_id, product_type, required_quantity, already_ordered, quantity_type}) => {
           if (project_name in project_prod_map)
-            project_prod_map[project_name].push({project_id, product_id, product_type, required_quantity, already_ordered });
+            project_prod_map[project_name].push({project_id, product_id, product_type, required_quantity, already_ordered, quantity_type });
           else 
-            project_prod_map[project_name] = [{project_id, product_id, product_type, required_quantity, already_ordered }];
+            project_prod_map[project_name] = [{project_id, product_id, product_type, required_quantity, already_ordered, quantity_type }];
           idMap[project_name] = project_id;
         });
 
@@ -113,11 +114,12 @@ export const Order = () => {
   const get_r_o_quantity = (project_name, pid, ptype) => {
     const products = project_master_list[project_name];
     for (let index in products) {
-      const {product_type, product_id, required_quantity, already_ordered} = products[index];
-      if (product_type == ptype && product_id == pid) {
+      const {product_type, product_id, required_quantity, already_ordered,quantity_type} = products[index];
+      if (product_type === ptype && product_id === pid) {
         return {
           "required_quantity": Number.parseInt(required_quantity),
-          "total_ordered": Number.parseInt(already_ordered)
+          "total_ordered": Number.parseInt(already_ordered),
+          "quantity_type": quantity_type
         };
       }
     }
@@ -208,9 +210,10 @@ export const Order = () => {
       const product_type = data[index]["product_type"]= e.value.split(" - ")[0];
       const product_id = data[index]["product_id"]= e.value.split(" - ")[1];
       data[index]["product"] = e.value;
-      const {required_quantity, total_ordered} = get_r_o_quantity(project_name, product_id, product_type);
+      const {required_quantity, total_ordered, quantity_type} = get_r_o_quantity(project_name, product_id, product_type);
       data[index]["required_quantity"] = Number.parseInt(required_quantity);
       data[index]["total_ordered"] = total_ordered;
+      data[index]["quantity_type"] = quantity_type;
       data[index]["order_max_limit"] = required_quantity - total_ordered;
     }
     setorderDetails(data);
@@ -244,7 +247,7 @@ export const Order = () => {
                       <Form className="col-xl-12" validated={validated} noValidate onSubmit={submit}>
                           {
                             poNumber? 
-                            orderDetails.map(({productOption, product, project_name, ordered_quantity, expected_delivery, order_remark,  order_comp_id, order_max_limit}, index ) => {
+                            orderDetails.map(({productOption, product, project_name, ordered_quantity, quantity_type, expected_delivery, order_remark,  order_comp_id, order_max_limit}, index ) => {
                               return (
                                 <div className="row mb-3" style={index < orderDetails.length-1? {"borderBottom": "1px solid #d8d8d8"} : {}} key={index}>
                                   <div className="col-xl-2 mb-3 col-auto">
@@ -260,6 +263,11 @@ export const Order = () => {
                                       <Select name='product' value={{"label": product}}
                                       options={productOption} isSearchable={true} isClearable={true}
                                       onChange={(s)=>onProductChange(s, index)} isDisabled={!(editOrder && !order_comp_id)} required></Select>
+                                  </div>
+
+                                  <div className="col-xl-1 mb-3 col-auto">
+                                  <label htmlFor="quantity_type" className="form-label"> QType</label>
+                                    <Form.Control name='quantity_type' value={quantity_type || "No's"} readOnly={!editOrder} />
                                   </div>
                                   
                                   <div className="col-xl-2 mb-3 col-auto">

@@ -372,7 +372,8 @@ def get_po_numbers():
 def get_all_required_products():
   try:
     query = """select p.project_id, p.project_name,
-                pml.product_type, pml.product_id, pml.required_quantity, ifnull(ord.ordered,0) already_ordered
+                pml.product_type, pml.product_id, pml.required_quantity,
+                pml.quantity_type, ifnull(ord.ordered,0) already_ordered
                 from projects p, project_master_list pml
                 left join (select project_comp_id, sum(ordered_quantity) ordered
                 from purchase_order_details group by project_comp_id) ord on ord.project_comp_id = pml.project_comp_id
@@ -385,6 +386,7 @@ def get_all_required_products():
   except Exception as e:
     logging.error(e)
     raise e
+
 # ------  get project aggregation --------
 @app.route('/spm/get_project_agg', methods = ['GET'])
 def get_project_aggregation():
@@ -486,7 +488,7 @@ def get_order_details():
       query = """
         select po.order_id, po.po_number, pod.order_comp_id,
           p.project_name, pml.product_id, pml.product_type, pod.order_remark,
-          pml.required_quantity, pod.ordered_quantity, pod.expected_delivery,
+          pml.required_quantity, pml.quantity_type, pod.ordered_quantity, pod.expected_delivery,
           ifnull(porders.total_ordered,0) total_ordered,
           ifnull(rorders.already_recieved,0) already_recieved
         from projects p

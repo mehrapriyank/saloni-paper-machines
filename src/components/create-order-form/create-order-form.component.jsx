@@ -25,6 +25,7 @@ export const CreateOrderForm = () => {
     "already_ordered": "",
     "product": "",
     "max_order_limit": 999999,
+    "quantity_type": ""
   };
   const [validated, setValidated] = useState(false);
   const [productList, setProductList] = useState([empty_product]);
@@ -56,11 +57,11 @@ export const CreateOrderForm = () => {
         const response_data = await response.json();
         console.log("PML: ", response_data);
         
-        response_data.forEach(({project_id, project_name, product_id, product_type, required_quantity, already_ordered}) => {
+        response_data.forEach(({project_id, project_name, product_id, product_type, required_quantity, already_ordered, quantity_type}) => {
           if (project_name in project_prod_map)
-            project_prod_map[project_name].push({project_id, product_id, product_type, required_quantity, already_ordered });
+            project_prod_map[project_name].push({project_id, product_id, product_type, required_quantity, already_ordered, quantity_type });
           else 
-            project_prod_map[project_name] = [{project_id, product_id, product_type, required_quantity, already_ordered }];
+            project_prod_map[project_name] = [{project_id, product_id, product_type, required_quantity, already_ordered, quantity_type }];
           idMap[project_name] = project_id;
         });
 
@@ -105,11 +106,12 @@ export const CreateOrderForm = () => {
   const get_r_o_quantity = (project_name, pid, ptype) => {
     const products = project_master_list[project_name];
     for (let index in products) {
-      const {product_type, product_id, required_quantity, already_ordered} = products[index];
+      const {product_type, product_id, required_quantity, already_ordered,  quantity_type} = products[index];
       if (product_type == ptype && product_id == pid) {
         return {
           "required_quantity": Number.parseInt(required_quantity),
-          "already_ordered": Number.parseInt(already_ordered)
+          "already_ordered": Number.parseInt(already_ordered),
+          "quantity_type": quantity_type
         };
       }
     }
@@ -189,9 +191,10 @@ export const CreateOrderForm = () => {
       const product_type = data[index]["product_type"]= e.value.split(" - ")[0];
       const product_id = data[index]["product_id"]= e.value.split(" - ")[1];
       data[index]["product"] = e.value;
-      const {required_quantity, already_ordered} = get_r_o_quantity(project_name, product_id, product_type);
+      const {required_quantity, already_ordered, quantity_type} = get_r_o_quantity(project_name, product_id, product_type);
       data[index]["required_quantity"] = Number.parseInt(required_quantity);
       data[index]["already_ordered"] = already_ordered;
+      data[index]["quantity_type"] = quantity_type;
       data[index]["max_order_limit"] = required_quantity - already_ordered;
     }
     setProductList(data);
@@ -212,7 +215,7 @@ export const CreateOrderForm = () => {
                     </div>
                     {
                       poNumber? 
-                      productList.map(({product, project_name, productOption, ordered_quantity, expected_delivery, order_remark, required_quantity, already_ordered, max_order_limit}, index ) => {
+                      productList.map(({product, project_name, productOption, ordered_quantity, expected_delivery,quantity_type, order_remark, required_quantity, already_ordered, max_order_limit}, index ) => {
                         return (
                           <div className="row mb-3" style={index < productList.length-1? {"borderBottom": "1px solid #d8d8d8"} : {}} key={index}>
                             <div className="col-xl-2 mb-3 col-auto">
@@ -229,14 +232,17 @@ export const CreateOrderForm = () => {
                                  onChange={(s)=>onProductChange(s, index)} required></Select>
                             </div>
 
-                            <div className="col-xl-1 mb-3 col-auto">
+                            <div className="col-xl-2 mb-3 col-auto">
                               <label htmlFor="required_quantity" className="form-label">O/R</label>
-                              <Form.Control name='required_quantity' type="text" placeholder="Quantity" value={`${already_ordered}/${required_quantity}`} readOnly/>
+                              <Form.Control name='required_quantity' type="text" placeholder="Quantity" 
+                              value={`${already_ordered || "-"}/${required_quantity || "-"} ${quantity_type || ""}`} readOnly/>
                             </div>
                             
-                            <div className="col-xl-2 mb-3 col-auto">
-                              <label htmlFor="ordered_quantity" className="form-label">Order Quantity</label>
-                              <Form.Control name='ordered_quantity' type="number" placeholder="Quantity" value={ordered_quantity} isInvalid={ordered_quantity>max_order_limit || ordered_quantity === 0} min="0" max={max_order_limit} onChange={(e) => handleFormChange(e, index)} required/>
+                            <div className="col-xl-1 mb-3 col-auto">
+                              <label htmlFor="ordered_quantity" className="form-label">Order</label>
+                              <Form.Control name='ordered_quantity' type="number" placeholder="Quantity" 
+                              value={ordered_quantity} isInvalid={ordered_quantity>max_order_limit || ordered_quantity === 0} 
+                              min="0" max={max_order_limit} onChange={(e) => handleFormChange(e, index)} required/>
                               <Form.Control.Feedback type="invalid">
                                   Please select a value between 0-{max_order_limit}
                               </Form.Control.Feedback>
