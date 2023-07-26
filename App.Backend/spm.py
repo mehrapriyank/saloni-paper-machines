@@ -669,7 +669,7 @@ def  get_products():
   try:
     query = """
       select pml.product_id, pml.product_type, ord.challan_id, 
-      ord.recieved_quantity, ord.status
+      ord.recieved_quantity, ord.status, pml.quantity_type
       from order_recieved ord, project_master_list pml, purchase_order_details pod
       where pod.order_comp_id = ord.order_comp_id
       and pod.project_comp_id = pml.project_comp_id

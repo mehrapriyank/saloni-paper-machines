@@ -57,13 +57,13 @@ export const ProductList = () => {
               </thead>
               <tbody>
               {
-                products.map(({challan_id, product_id, product_type, recieved_quantity,status }) => {
+                products.map(({challan_id, product_id, product_type, recieved_quantity,status, quantity_type }) => {
                   return (
                     <tr key={`${product_type}_${product_id}_${recieved_quantity}_${Math.floor(Math.random() * 10)}`}>
                       <td><h5>{product_type}</h5></td>
                       <td>{product_id}</td>
                       <td>{challan_id}</td>
-                      <td>{recieved_quantity}</td>
+                      <td>{`${recieved_quantity} ${quantity_type||""}`}</td>
                       <td><span className={`ms-1 badge badge-${status.toUpperCase() === 'ACCEPTED'? "success": "danger"}-lighten`}>{status}</span></td>
                     </tr>
                   )
