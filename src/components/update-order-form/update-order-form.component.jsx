@@ -5,13 +5,15 @@ import 'react-bootstrap/'
 import "react-datepicker/dist/react-datepicker.css";
 import { useEffect, useState, useContext } from 'react';
 import { UserContext } from '../../contexts/user.context';
-
+import { useNavigate } from 'react-router-dom';
 let options = [];
 const statusOptions = [
     { "value": "Accepted", "label": "Accepted" },
     { "value": "Rejected", "label": "Rejected" }
   ]
 export const UpdateOrderForm = () => {
+  const navigate = useNavigate();
+  const [validated, setValidated] = useState(false);
   const [productList, setProductList] = useState([]);
   const [poNumber, setPONumber] = useState("");
   const [poList, setPOOptions] = useState([]);
@@ -51,26 +53,8 @@ export const UpdateOrderForm = () => {
       })
 
       const response_data = await response.json()
-      //console.log("Purchase order details: "+response_data)
 
-      const order_items = response_data.order_items;
-      // const product_list = response_data.product_details
-      //                     .map((prod_detail) => {
-      //                       let rTillDate = prod_detail["recieved_accepted"];
-
-      //                       if (rTillDate === 0) {
-      //                         prod_detail["remaining_quantity"] = prod_detail["order_quantity"];
-      //                       }
-      //                       else {
-      //                         prod_detail["remaining_quantity"] = parseInt(prod_detail["order_quantity"])-parseInt(rTillDate);
-      //                       }
-      //                       prod_detail["expected_delivery"] = new Date(prod_detail["expected_delivery"])
-      //                       prod_detail["recieved_quantity"] = "";
-      //                       prod_detail["recieved_date"] = "";
-      //                       prod_detail["delivery_remark"] = "";
-      //                       prod_detail["status"] = "";
-      //                       return prod_detail
-      //                     })    
+      const order_items = response_data.order_items;  
       order_items.forEach((item) => {
         item["recieved_quantity"] = "";
         item["status"] = "";
@@ -98,13 +82,6 @@ export const UpdateOrderForm = () => {
     else {
       let data = [...productList];
       data[index][event.target.name] = event.target.value;
-      if (event.target.name === "recieved_quantity") {
-        if (Number.parseInt(event.target.value) + Number.parseInt(data[index]["already_recieved"]) > data[index]["ordered_quantity"]) {
-          alert(`Ordered: ${data[index]["ordered_quantity"]}\nAlready Recieved: ${data[index]["already_recieved"]}\n
-          New recieved can not be more than ${data[index]["ordered_quantity"]-data[index]["already_recieved"]}`);
-          data[index][event.target.name] = data[index]["ordered_quantity"]-data[index]["already_recieved"];
-        }
-      }
       setProductList(data);
     }
   }
@@ -120,35 +97,43 @@ export const UpdateOrderForm = () => {
     setProductList(data);
   }
 
-  const submit = async (e) => {
-    e.preventDefault();
-   
-    const prod_list = productList.map((product) => {
-      let updated = false;
-      const {order_comp_id, recieved_quantity, recieved_date, status, delivery_remark} = product;
-      // let total_recieved = parseInt(order_quantity)-parseInt(remaining_quantity)
-      if (recieved_quantity && recieved_date && status && bill){
-        // total_recieved = total_recieved+parseInt(recieved_accepted);
-        updated =  true;
+  const submit = async (event) => {
+    const form = event.currentTarget;
+    if (form.checkValidity() === false) {
+      event.preventDefault();
+      event.stopPropagation();
+    } else {
+      event.preventDefault();
+      const prod_list = productList.map((product) => {
+        let updated = false;
+        const {order_comp_id, recieved_quantity, recieved_date, status, delivery_remark} = product;
+        // let total_recieved = parseInt(order_quantity)-parseInt(remaining_quantity)
+        if (recieved_quantity && recieved_date && status && bill){
+          // total_recieved = total_recieved+parseInt(recieved_accepted);
+          updated =  true;
+        }
+        return {order_comp_id,recieved_quantity,recieved_date, updated, status,delivery_remark};
+      }).filter((product) => product.updated === true);
+      const data = {
+        "po_id": poNumber,
+        "productList": prod_list,
+        "bill": bill
       }
-      return {order_comp_id,recieved_quantity,recieved_date, updated, status,delivery_remark};
-    }).filter((product) => product.updated === true);
-    const data = {
-      "po_id": poNumber,
-      "productList": prod_list,
-      "bill": bill
+      console.log(data);
+      const urlRequest = "http://127.0.0.1:80/spm/recieve_order";
+      const response =  await fetch(urlRequest, {
+          headers: new Headers({'content-type': 'application/json'}),
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(data)
+      })
+      const response_data = await response.json
+      console.log("Response on submit" + response_data)
+      // cleanPage();
+      navigate("/products");
     }
-    console.log(data);
-    const urlRequest = "http://127.0.0.1:80/spm/recieve_order";
-    const response =  await fetch(urlRequest, {
-        headers: new Headers({'content-type': 'application/json'}),
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(data)
-    })
-    const response_data = await response.json
-    console.log("Response on submit" + response_data)
-    cleanPage();
+    setValidated(true);
+    event.preventDefault();
   }
 
   return (
@@ -159,7 +144,7 @@ export const UpdateOrderForm = () => {
           <div className="card-body">
 
             <div className="row">
-                <Form className="col-xl-12 needs-validation" onSubmit={submit} noValidate>
+                <Form className="col-xl-12" validated={validated} noValidate onSubmit={submit}>
                   <div className='row'>
                     <div className="col-xl-5 mb-4 col-auto">
                           <label htmlFor="poNum" className="form-label">PO Number</label>
@@ -200,10 +185,6 @@ export const UpdateOrderForm = () => {
                               <label htmlFor="quantitiy" className="form-label">#Ordered</label>
                               <p>{ordered_quantity}</p>
                             </div>
-                            {/* <div className="col-xl-1 mb-1 col-auto text-center">
-                              <label htmlFor="remaining_quantity" className="form-label">#Remaining</label>
-                              <p>{remaining_quantity}</p>
-                            </div> */}
                             <div className="col-xl-2 mb-1 col-auto text-center">
                               <label className="form-label">Delivery Date</label>
                               <p>{expected_delivery}</p>
@@ -216,15 +197,21 @@ export const UpdateOrderForm = () => {
                             
                             <div className="col-xl-2 mb-1 col-auto text-center">
                               <label htmlFor="recieved_quantity" className="form-label">#Recieved</label>
-                              <input name='recieved_quantity' type="number" id="recieved_quantity" className="form-control" placeholder="Quantity" value={recieved_quantity} onChange={(e) => handleFormChange(e, index)} required/>
+                              <Form.Control name='recieved_quantity' type="number" id="recieved_quantity" 
+                                  className="form-control" placeholder="Quantity" value={recieved_quantity} 
+                                  isInvalid={recieved_quantity && recieved_quantity> Number.parseInt(ordered_quantity)-Number.parseInt(already_recieved)} 
+                                  onChange={(e) => handleFormChange(e, index)}/>
+                              <Form.Control.Feedback type="invalid">
+                                  Please select a value between 0-{Number.parseInt(ordered_quantity)-Number.parseInt(already_recieved)}
+                              </Form.Control.Feedback>
                             </div>
                             <div className="col-xl-2 mb-1 col-auto text-center">
                                 <label className="form-label">Recieved Date</label>
-                                <Form.Control name='recieved_date' type="date" placeholder="Date" value={recieved_date} min="0" max={ordered_quantity-already_recieved} onChange={(e) => handleFormChange(e, index)} required/>
+                                <Form.Control name='recieved_date' type="date" placeholder="Date" value={recieved_date} isInvalid={recieved_quantity && !recieved_date} onChange={(e) => handleFormChange(e, index)}/>
                             </div>
                             <div className="col-xl-2 mb-1 col-auto text-center">
                                 <label htmlFor="status" className="form-label">Status</label>
-                                <Select name='status' value={{"label": status}} options={statusOptions} isSearchable={true} isClearable={true} onChange={(s)=>handleStatusChange(s, index)} required></Select>
+                                <Select name='status' value={{"label": status}} options={statusOptions} isSearchable={true} isClearable={true} onChange={(s)=>handleStatusChange(s, index)}></Select>
                             </div>
                             <div className="col-xl-6 mb-3 col-auto text-center">
                               <label htmlFor="delivery_remark" className="form-label">Delivery Remarks</label>
@@ -236,8 +223,8 @@ export const UpdateOrderForm = () => {
                     }
                   </div>
                   <div className="row">
-                      <div className="mb-1 mt-3 col-auto"><button type="button" className="btn btn-light px-5" onClick={(e) => cleanPage()}>Cancel</button></div>
-                      <div className="mb-1 mt-3 col-auto"><button className={`btn px-5 px-sm-15 ${poNumber && bill ? "btn-primary":"btn-outline-primary disabled"}`} type="button" data-bs-toggle="modal" data-bs-target="#standard-modal">Confirm</button></div>
+                      <div className="mb-1 mt-3 col-auto"><button className="btn btn-light px-5" type='button' onClick={cleanPage}>Cancel</button></div>
+                      <div className="mb-1 mt-3 col-auto"><button className={`btn px-5 px-sm-15 btn-primary`} type="button" data-bs-toggle="modal" data-bs-target="#standard-modal">Submit</button></div>
                   </div>
 
                   <div id="standard-modal" className="modal fade" tabIndex="-1" role="dialog" aria-labelledby="standard-modalLabel" aria-hidden="true">

@@ -6,8 +6,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { UserContext } from '../../contexts/user.context';
 import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export const Order = () => {
+  const [validated, setValidated] = useState(false);
+  const navigate = useNavigate();
   const {currentUser} = useContext(UserContext);
   const project_prod_map = {};
   const [project_id_map, set_project_id_map] = useState({});
@@ -137,29 +140,39 @@ export const Order = () => {
     setorderDetails(JSON.parse(JSON.stringify(originalList)));
   }
 
-  const submit = async (e) => {
-    e.preventDefault();
-    const data = {
-      "order_id": orderID,
-      "po_number": poNumber, 
-      "orderDetails": orderDetails.filter(
-        ({isUpdated, project_name, product_type, product_id}) => isUpdated && project_name && product_type && product_id),
-      "updated_on": Date.now(),
-      "updated_by": currentUser.id
+  const submit = async (event) => {
+    const form = event.currentTarget;
+    if (form.checkValidity() === false) {
+      event.preventDefault();
+      event.stopPropagation();
+    } else {
+      event.preventDefault();
+      const data = {
+        "order_id": orderID,
+        "po_number": poNumber, 
+        "orderDetails": orderDetails.filter(
+          ({isUpdated, project_name, product_type, product_id, ordered_quantity}) => 
+            isUpdated && project_name && product_type && product_id && ordered_quantity),
+        "updated_on": Date.now(),
+        "updated_by": currentUser.id
+      }
+      console.log("Sending Data: ", data);
+      const urlRequest = "http://127.0.0.1:80/spm/update_order";
+      const response =  await fetch(urlRequest, {
+          headers: new Headers({'content-type': 'application/json'}),
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(data)
+      })
+      const response_data = await response.json;
+      console.log("Response on submit" + response_data);
+      orderDetails.forEach((item)=> item.isUpdated = false);
+      setOriginalList(JSON.parse(JSON.stringify(orderDetails)));
+      setEditOrder(false);
+      // navigate("/orders");
     }
-    console.log("Sending Data: ", data);
-    const urlRequest = "http://127.0.0.1:80/spm/update_order";
-    const response =  await fetch(urlRequest, {
-        headers: new Headers({'content-type': 'application/json'}),
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(data)
-    })
-    const response_data = await response.json;
-    console.log("Response on submit" + response_data);
-    orderDetails.forEach((item)=> item.isUpdated = false);
-    setOriginalList(JSON.parse(JSON.stringify(orderDetails)));
-    setEditOrder(false);
+    setValidated(true);
+    event.preventDefault();
   }
   const addProduct = () => {
     setorderDetails([...orderDetails, empty_product]);
@@ -228,7 +241,7 @@ export const Order = () => {
                 <div className="card-body">
 
                   <div className="row">
-                      <Form className="col-xl-12 needs-validation" onSubmit={submit}>
+                      <Form className="col-xl-12" validated={validated} noValidate onSubmit={submit}>
                           {
                             poNumber? 
                             orderDetails.map(({productOption, product, project_name, ordered_quantity, expected_delivery, order_remark,  order_comp_id, order_max_limit}, index ) => {
@@ -252,6 +265,9 @@ export const Order = () => {
                                   <div className="col-xl-2 mb-3 col-auto">
                                     <label htmlFor="ordered_quantity" className="form-label">Ordered Quantity</label>
                                     <Form.Control name='ordered_quantity' className={ !editOrder? '' : "border border-primary"} type="number" min="0" max={order_max_limit} placeholder="Quantity" value={ordered_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editOrder} required/>
+                                    <Form.Control.Feedback type="invalid">
+                                      Please select a value between 0-{order_max_limit}
+                                    </Form.Control.Feedback>
                                   </div>
                                   <div className="col-xl-2 mb-3 col-auto">
                                     <label htmlFor="expected_delivery" className="form-label">Delivery Date</label>
@@ -278,7 +294,7 @@ export const Order = () => {
                                   }
                                   <div className="col-xl-4 mb-3 col-auto">
                                     <label htmlFor="order_remark" className="form-label">Remark</label>
-                                    <Form.Control name='order_remark' type="text" placeholder="Add Remark" value={order_remark} onChange={(e) => handleFormChange(e, index)}/>
+                                    <Form.Control name='order_remark' type="text" placeholder="Add Remark" value={order_remark} onChange={(e) => handleFormChange(e, index)} readOnly={!editOrder}/>
                                   </div>
 
                                 </div>

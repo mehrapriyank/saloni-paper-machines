@@ -4,6 +4,7 @@ import { Form } from 'react-bootstrap';
 import { useEffect, useState, useRef} from 'react';
 import { UserContext } from '../../contexts/user.context';
 import { useContext } from 'react';
+import { Outlet, useNavigate } from "react-router-dom";
 
 const qtypeOption = [
   { "value": "mm", "label": "mm" },
@@ -11,8 +12,10 @@ const qtypeOption = [
   { "value": "No's", "label": "No's" },
 ]
 export const ProjectMasterListForm = () => {
+  const [validated, setValidated] = useState(false);
   const {currentUser} = useContext(UserContext);
   const projectList = useRef([]);
+  const navigate = useNavigate();
   const empty_product = {
     "product_type": "",
     "product_id": "",
@@ -58,37 +61,16 @@ export const ProjectMasterListForm = () => {
     let data = [...productList];
     data[index][event.target.name] = event.target.value;
     setProductList(data);
-    // checkValidation()
   }
-
-  // const isNumber = (value) => {
-  //   if (typeof value === "string") {
-  //       return !isNaN(value);
-  //   }
-  // }
-
-  // const checkValidation = () => {
-  //   if ((projectName) && (productList)) {
-  //     let isNotValid = productList.some(({product_type, product_id, required_quantity, required_by_date}) => {
-  //       return !product_type || !product_id || !required_quantity || !required_by_date || !isNumber(required_quantity);
-  //     });
-  //     setIsInputValid(!isNotValid)
-  //   }
-  //   else {
-  //     setIsInputValid(false);
-  //   }
-  // }
 
   const addProduct = () => {
     setProductList([...productList, empty_product])
-    // setIsInputValid(false);
   }
 
   const removeProduct = async (e, index) => {
     let data = [...productList];
     data.splice(index, 1)
-    await setProductList(data)
-    // checkValidation();
+    await setProductList(data);
   }
 
   const handleQTypeChange = (event, index) => {
@@ -102,24 +84,32 @@ export const ProjectMasterListForm = () => {
     setProductList(data);
   }
 
-  const submit = async (e) => {
-    e.preventDefault();
-    const data = {
-      "project_name": projectName,
-      "project_details": productList,
-      "created_by": currentUser.id,
+  const submit = async (event) => {
+    const form = event.currentTarget;
+    if (form.checkValidity() === false) {
+      event.preventDefault();
+      event.stopPropagation();
+    } else {
+      event.preventDefault();
+      const data = {
+        "project_name": projectName,
+        "project_details": productList,
+        "created_by": currentUser.id,
+      }
+      console.log(data);
+      const urlRequest = "http://127.0.0.1:80/spm/create_project";
+      const response =  await fetch(urlRequest, {
+          headers: new Headers({'content-type': 'application/json'}),
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(data)
+      })
+      const response_data = await response.json;
+      console.log("Response on submit" + response_data);
+      navigate('/projects');
     }
-    console.log(data);
-    const urlRequest = "http://127.0.0.1:80/spm/create_project";
-    const response =  await fetch(urlRequest, {
-        headers: new Headers({'content-type': 'application/json'}),
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(data)
-    })
-    const response_data = await response.json;
-    console.log("Response on submit" + response_data);
-    cleanPage();
+    setValidated(true);
+    event.preventDefault();
   }
 
   return (
@@ -129,8 +119,7 @@ export const ProjectMasterListForm = () => {
           <div className="card-body">
 
             <div className="row">
-                <Form className="col-xl-12 needs-validation" onSubmit={submit}>
-
+                <Form className="col-xl-12" validated={validated} noValidate onSubmit={submit}>
                     <div className="col-xl-6 mb-3 col-auto">
                         <label htmlFor="poNum" className="form-label">Project ID</label>
                         <Form.Control type="text" value={projectName} id="poNum" className="form-control" placeholder="Enter Project ID" onChange={(e)=>handleProjectChange(e)} onBlur={validateProjectName} required/>
@@ -162,7 +151,7 @@ export const ProjectMasterListForm = () => {
                             </div>
                             <div className="col-xl-2 mb-3 col-auto">
                               <label htmlFor="required_quantity" className="form-label">Required Quantity</label>
-                              <Form.Control name='required_quantity' type="number" placeholder="Quantity" value={required_quantity} onChange={(e) => handleFormChange(e, index)} required/>
+                              <Form.Control name='required_quantity' type="number" placeholder="Quantity" value={required_quantity} min="0" onChange={(e) => handleFormChange(e, index)} required/>
                             </div>
                             <div className="col-xl-2 mb-1 col-auto">
                                 <label htmlFor="status" className="form-label">Quantity Type</label>

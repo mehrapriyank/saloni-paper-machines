@@ -6,9 +6,10 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useEffect, useRef, useState } from 'react';
 import { useContext } from 'react';
 import { UserContext } from '../../contexts/user.context';
+import { useNavigate } from 'react-router-dom';
 
 export const CreateOrderForm = () => {
-  
+  const navigate = useNavigate();
   const {currentUser} = useContext(UserContext);
   const [project_id_map, set_project_id_map] = useState({});
   const empty_product = {
@@ -25,7 +26,7 @@ export const CreateOrderForm = () => {
     "product": "",
     "max_order_limit": 999999,
   };
-
+  const [validated, setValidated] = useState(false);
   const [productList, setProductList] = useState([empty_product]);
   const [poNumber, setPONumber] = useState("");
   // const [isInputValid, setIsInputValid] = useState(false);
@@ -124,24 +125,34 @@ export const CreateOrderForm = () => {
     setProductList(data);
   }
 
-  const submit = async (e) => {
-    e.preventDefault();
-    const data = {
-      "poNumber": poNumber,
-      "productList": productList.filter(({product_type, product_id, project_name}) => product_type && product_id && project_name),
-      "created_by": currentUser.id
-    }
-    console.log("Sending Data: ", data);
-    const urlRequest = "http://127.0.0.1:80/spm/create_order";
-    const response =  await fetch(urlRequest, {
-        headers: new Headers({'content-type': 'application/json'}),
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(data)
-    })
-    const response_data = await response.json;
-    console.log("Response on submit" + response_data);
-    cleanPage();
+  const submit = async (event) => {
+    const form = event.currentTarget;
+    if (form.checkValidity() === false) {
+      event.preventDefault();
+      event.stopPropagation();
+    } else {
+      event.preventDefault();
+      const data = {
+        "poNumber": poNumber,
+        "productList": productList.filter(({product_type, product_id, project_name,ordered_quantity}) => 
+        product_type && product_id && project_name && ordered_quantity),
+        "created_by": currentUser.id
+      }
+      console.log("Sending Data: ", data);
+      const urlRequest = "http://127.0.0.1:80/spm/create_order";
+      const response = await fetch(urlRequest, {
+          headers: new Headers({'content-type': 'application/json'}),
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(data)
+      })
+      const response_data = await response.json;
+      console.log("Response on submit" + response_data);
+      navigate("/orders");
+    } 
+    
+    setValidated(true);
+    event.preventDefault();
   }
   
   const addProduct = () => {
@@ -194,8 +205,7 @@ export const CreateOrderForm = () => {
           <div className="card-body">
 
             <div className="row">
-                <Form className="col-xl-12 needs-validation" onSubmit={submit}>
-
+                <Form className="col-xl-12" validated={validated} noValidate onSubmit={submit}>
                     <div className="col-xl-6 mb-3 col-auto">
                         <label htmlFor="poNum" className="form-label">PO Number</label>
                         <Form.Control type="text" value={poNumber} id="poNum" className="form-control" placeholder="Enter PO Number" onChange={(e)=>handlePOChange(e)} onBlur={validatePONumber} required/>
@@ -207,10 +217,6 @@ export const CreateOrderForm = () => {
                           <div className="row mb-3" style={index < productList.length-1? {"borderBottom": "1px solid #d8d8d8"} : {}} key={index}>
                             <div className="col-xl-2 mb-3 col-auto">
                                 <label htmlFor="project_name" className="form-label">Project</label>
-                                {/* <Form.Select value={project_name} onChange={(e) => onProjectChange(e, index)}>
-                                  <option value=""></option>
-                                  {projectOptions.map((opt) => <option value={opt.label}> {opt.value} </option>)}
-                                </Form.Select> */}
                                 <Select name='project_name' options={projectOptions} value={{"label": project_name}} isSearchable={true} isClearable={true} onChange={(s)=>onProjectChange(s, index)} required></Select>
                                 {/* <Form.Control name='project' type="text" placeholder="Project" value={project} onChange={(e) => handleFormChange(e, index)} required/> */}
 
@@ -221,13 +227,6 @@ export const CreateOrderForm = () => {
                                 <Select name='product' value={{"label": product}}
                                 options={productOption} isSearchable={true} isClearable={true}
                                  onChange={(s)=>onProductChange(s, index)} required></Select>
-                                 
-                                {/* <Form.Select value={product} onChange={(e) => onProductChange(e, index)}>
-                                  <option value=""></option>
-                                  {productOption.map((opt) => <option value={opt.label}> {opt.value} </option>)}
-                                </Form.Select> */}
-                                {/* <Form.Control name='product' type="text" placeholder="Project" value={project} onChange={(e) => handleFormChange(e, index)} required/> */}
-
                             </div>
 
                             <div className="col-xl-1 mb-3 col-auto">
@@ -237,13 +236,21 @@ export const CreateOrderForm = () => {
                             
                             <div className="col-xl-2 mb-3 col-auto">
                               <label htmlFor="ordered_quantity" className="form-label">Order Quantity</label>
-                              <Form.Control name='ordered_quantity' type="number" placeholder="Quantity" value={ordered_quantity} min="0" max={max_order_limit} onChange={(e) => handleFormChange(e, index)} required/>
+                              <Form.Control name='ordered_quantity' type="number" placeholder="Quantity" value={ordered_quantity} isInvalid={ordered_quantity>max_order_limit || ordered_quantity === 0} min="0" max={max_order_limit} onChange={(e) => handleFormChange(e, index)} required/>
+                              <Form.Control.Feedback type="invalid">
+                                  Please select a value between 0-{max_order_limit}
+                              </Form.Control.Feedback>
+
                             </div>
       
                             <div className="col-xl-2 mb-3 col-auto">
                                 <label className="form-label">Delivery Date</label>
                                 <Form.Control name='expected_delivery' type="date" placeholder="ETA" value={expected_delivery} onChange={(e) => handleFormChange(e, index)} required/>
+                                <Form.Control.Feedback type="invalid">
+                                    Please select a value
+                                </Form.Control.Feedback>
                             </div>
+
                             {
                               productList.length > 1 ? (
                                 <div className="col-xl-1 mb-3 col-auto">

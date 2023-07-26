@@ -398,6 +398,7 @@ def get_project_aggregation():
       on pml.project_id = p.project_id
       join users on p.created_by = users.employee_id
       group by p.project_id, p.project_name, p.created_by, users.name, p.created_at
+      order by p.created_at desc
     """
     query_result = DBUtil().execute_query(query)
     result = query_result
@@ -463,6 +464,7 @@ def get_po_aggregation():
       on pml.project_comp_id = pod.project_comp_id
       join users on p.created_by = users.employee_id
       group by p.po_number, users.name, p.created_at
+      order by p.created_at desc
     """
     query_result = DBUtil().execute_query(query)
     result = query_result

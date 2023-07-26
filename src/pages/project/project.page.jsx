@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment} from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Form } from 'react-bootstrap';
 import { UserContext } from '../../contexts/user.context';
 import { useContext } from 'react';
@@ -11,6 +11,8 @@ const qtypeOption = [
   { "value": "No's", "label": "No's" },
 ]
 export const Project = () => {
+  const navigate = useNavigate();
+  const [validated, setValidated] = useState(false);
   const {currentUser} = useContext(UserContext);
   const { project} = useParams();
   const [projectDetails, setProjectDetails] = useState([]);
@@ -109,28 +111,37 @@ export const Project = () => {
   }
 
 
-  const submit = async (e) => {
-    e.preventDefault();
-    const data = {
-      "project_id": projectID,
-      "project_name": project,
-      "project_details": projectDetails.filter((item) => item.isUpdated === true),
-      "updated_on": Date.now(),
-      "updated_by": currentUser.id
+  const submit = async (event) => {
+    const form = event.currentTarget;
+    if (form.checkValidity() === false) {
+      event.preventDefault();
+      event.stopPropagation();
+    } else {
+      event.preventDefault();
+      const data = {
+        "project_id": projectID,
+        "project_name": project,
+        "project_details": projectDetails.filter((item) => item.isUpdated === true),
+        "updated_on": Date.now(),
+        "updated_by": currentUser.id
+      }
+      console.log(data);
+      const urlRequest = "http://127.0.0.1:80/spm/update_project";
+      const response = await fetch(urlRequest, {
+          headers: new Headers({'content-type': 'application/json'}),
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(data)
+      })
+      const response_data = await response.json;
+      console.log("Response on submit" + response_data);
+      projectDetails.forEach((item)=> item.isUpdated = false);
+      setOriginalList(JSON.parse(JSON.stringify(projectDetails)));
+      setEditProject(false);
+      navigate("/projects");
     }
-    console.log(data);
-    const urlRequest = "http://127.0.0.1:80/spm/update_project";
-    const response = await fetch(urlRequest, {
-        headers: new Headers({'content-type': 'application/json'}),
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(data)
-    })
-    const response_data = await response.json;
-    console.log("Response on submit" + response_data);
-    projectDetails.forEach((item)=> item.isUpdated = false);
-    setOriginalList(JSON.parse(JSON.stringify(projectDetails)));
-    setEditProject(false);
+    setValidated(true);
+    event.preventDefault();
   } 
   const onEditClick = () => {
     setEditProject(!editProject);
@@ -173,7 +184,7 @@ export const Project = () => {
                 <div className="card-body">
 
                   <div className="row">
-                      <Form className="col-xl-12 needs-validation" onSubmit={submit}>
+                      <Form className="col-xl-12" noValidate validated={validated} onSubmit={submit}>
                         {
                           projectDetails.map(({product_type, product_id, required_quantity, project_comp_id, required_by_date, quantity_type, used_quantity, dispatched_quantity, recieved_quantity}, index ) => {
                             return (
@@ -189,7 +200,7 @@ export const Project = () => {
                                 </div>
                                 <div className="col-xl-1 mb-2 col-auto">
                                   <label htmlFor="required_quantity" className="form-label">Required</label>
-                                  <Form.Control name='required_quantity' className={ editProject ? 'border border-primary' : ""} type="number" placeholder="Req Quantity" value={required_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject} required/>
+                                  <Form.Control name='required_quantity' className={ editProject ? 'border border-primary' : ""} type="number" min="0" placeholder="Req Quantity" value={required_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject} required/>
                                 </div>
                                 <div className="col-xl-2 mb-2 col-auto">
                                   <label htmlFor="quantity_type" className="form-label">QType</label>
