@@ -53,38 +53,9 @@ export const Project = () => {
   
   const handleFormChange = (event, index) => {
     let data = [...projectDetails];
-    if (event.target.name === "used_quantity") {
-      if(event.target.value > data[index]["recieved_quantity"]) {
-        alert(`Used can not be more that recieved (${data[index]["recieved_quantity"] || 0})`);
-        // data[index] = data[index]["used_quantity"];
-      }
-      else {
-        data[index][event.target.name] = event.target.value;
-        data[index]["isUpdated"] = true;
-        setProjectDetails(data);
-      }
-    }
-    else if (event.target.name === "dispatched_quantity") {
-      if(event.target.value > data[index]["used_quantity"]) {
-        alert(`Dispatched can not be more that Used (${data[index]["used_quantity"]|| 0})`);
-        // event.target.value = data[index]["dispatched_quantity"];
-      }
-      else {
-        data[index][event.target.name] = event.target.value;
-        data[index]["isUpdated"] = true;
-        setProjectDetails(data);
-      }
-    }
-    else {
-      data[index][event.target.name] = event.target.value;
-      data[index]["isUpdated"] = true;
-      setProjectDetails(data);
-    }
-    
-    // checkValidation()
-  }
-
-  const validateQuantity = (event, index) => {
+    data[index][event.target.name] = event.target.value;
+    data[index]["isUpdated"] = true;
+    setProjectDetails(data);
   }
 
   const addProduct = () => {
@@ -113,7 +84,8 @@ export const Project = () => {
 
   const submit = async (event) => {
     const form = event.currentTarget;
-    if (form.checkValidity() === false) {
+    if (form.checkValidity() === false || 
+      projectDetails.some(project => (project.used_quantity > project.recieved_quantity) || (project.dispatched_quantity > project.used_quantity))) {
       event.preventDefault();
       event.stopPropagation();
     } else {
@@ -219,11 +191,19 @@ export const Project = () => {
                                     </div>
                                     <div className="col-xl-1 mb-2 col-auto">
                                       <label htmlFor="used_quantity" className="form-label">Used</label>
-                                      <Form.Control name='used_quantity' className={ editProject ? 'border border-primary' : ""} type="number" placeholder="Used" value={used_quantity} onChange={(e) => handleFormChange(e, index)} onBlur={(e)=> validateQuantity(e,index)} readOnly={!editProject} required/>
+                                      <Form.Control name='used_quantity' className={ editProject ? 'border border-primary' : ""} type="number"
+                                      min="0" max={recieved_quantity || 0} isInvalid={used_quantity>recieved_quantity} placeholder="Used" value={used_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
+                                      <Form.Control.Feedback type="invalid">
+                                          Please select a value between 0-{recieved_quantity || 0}
+                                      </Form.Control.Feedback>
                                     </div>
                                     <div className="col-xl-1 mb-2 col-auto">
                                       <label htmlFor="dispatched_quantity" className="form-label">Dispatched</label>
-                                      <Form.Control name='dispatched_quantity' className={ editProject ? 'border border-primary' : ""} type="number" placeholder="Dispatched" value={dispatched_quantity} onChange={(e) => handleFormChange(e, index)} onBlur={(e)=> validateQuantity(e,index)} readOnly={!editProject} required/>
+                                      <Form.Control name='dispatched_quantity' className={ editProject ? 'border border-primary' : ""} type="number"
+                                      min="0" max={used_quantity || 0} isInvalid={dispatched_quantity>used_quantity} placeholder="Dispatched" value={dispatched_quantity} onChange={(e) => handleFormChange(e, index)} readOnly={!editProject}/>
+                                      <Form.Control.Feedback type="invalid">
+                                          Please select a value between 0-{used_quantity ||0}
+                                      </Form.Control.Feedback>
                                     </div>
                                   </Fragment>
                                   ):"" 
