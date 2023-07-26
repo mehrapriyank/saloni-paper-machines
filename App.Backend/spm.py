@@ -458,12 +458,21 @@ def get_po_aggregation():
       select p.po_number, users.name created_by, p.created_at, 
       json_arrayagg(pml.product_id) as product_ids, 
       json_arrayagg(pml.product_type) as product_types,
-      json_arrayagg(pod.expected_delivery) as expected_deliverys
+      json_arrayagg(ifnull(rorders.expected_delivery, "")) as expected_deliverys
       from purchase_orders p
       join purchase_order_details pod
       on pod.order_id = p.order_id
       join project_master_list pml
       on pml.project_comp_id = pod.project_comp_id
+      left join (
+        select pod.order_comp_id, pod.expected_delivery, pod.ordered_quantity, ifnull(ord.recieved_quantity,0) 
+        recieved_quantity from purchase_order_details pod
+        left join (select order_comp_id, ifnull(sum(recieved_quantity),0) recieved_quantity from order_recieved
+                    where status in ('Accepted', 'accepted', 'ACCEPTED') 
+                    group by order_comp_id) ord 
+      on ord.order_comp_id = pod.order_comp_id 
+     	having recieved_quantity = 0 or pod.ordered_quantity > recieved_quantity) rorders
+      on rorders.order_comp_id = pod.order_comp_id
       join users on p.created_by = users.employee_id
       group by p.po_number, users.name, p.created_at
       order by p.created_at desc

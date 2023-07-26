@@ -12,10 +12,11 @@ function removeDup(arr) {
 export const OrderList = () => {
   const {currentUser} = useContext(UserContext);
   const [projects, setProjects] = useState([]);
-  const order_list = [];
+  
   useEffect(() => {
     ( async () => {
       if (currentUser){
+        const order_list = [];
         const urlRequest = "http://127.0.0.1:80/spm/get_po_agg";
         const response =  await fetch(urlRequest, {
           method: 'get', mode: 'cors', contentType: 'application/json',
@@ -28,11 +29,13 @@ export const OrderList = () => {
           order_details["product_ids"] = removeDup(JSON.parse(product_ids));
           order_details["product_types"] = removeDup(JSON.parse(product_types));
           order_details["urgent"] = JSON.parse(expected_deliverys).some((delivery) => {
-            const today = new Date();
-            const del_date = new Date(delivery);
-            const follow_up_date = new Date(del_date.setDate(today.getDate() - 20));
-            // console.log({follow_up_date, delivery});
-            return follow_up_date <= today;
+            if (delivery){
+              const today = new Date();
+              const del_date = new Date(delivery);
+              const follow_up_date = new Date(today.setDate(today.getDate() + 20));
+              console.log({follow_up_date, del_date});
+              return follow_up_date > del_date;
+            }
           });
           // order_details["projects"] = removeDup(JSON.parse(projects));
           order_details["created_by"] = created_by;
