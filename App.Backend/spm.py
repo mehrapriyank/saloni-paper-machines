@@ -679,10 +679,13 @@ def get_inventory():
 def  get_products():
   try:
     query = """
-      select pml.product_id, pml.product_type, ord.challan_id, 
+      select pml.product_id, pml.product_type, ord.challan_id,
+     	p.project_name, po.po_number,
       ord.recieved_quantity, ord.status, pml.quantity_type
-      from order_recieved ord, project_master_list pml, purchase_order_details pod
-      where pod.order_comp_id = ord.order_comp_id
+      from order_recieved ord, project_master_list pml, purchase_order_details pod,
+      projects p, purchase_orders po
+      where p.project_id = pml.project_id and po.order_id = pod.order_id
+      and pod.order_comp_id = ord.order_comp_id
       and pod.project_comp_id = pml.project_comp_id
     """
 
