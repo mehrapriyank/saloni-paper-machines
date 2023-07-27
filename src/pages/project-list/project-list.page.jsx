@@ -20,13 +20,14 @@ export const ProjectList = () => {
         });
         const response_data = await response.json();
         const project_list = [];
-        response_data.forEach(({project_name, created_by, product_ids, product_types, created_at}) => {
+        response_data.forEach(({project_name, updated_by, product_ids, product_types, created_at, last_updated_at}) => {
           const project_details = {};
           project_details["project_id"] = project_name;
           project_details["product_ids"] = removeDup(JSON.parse(product_ids));
           project_details["product_types"] = removeDup(JSON.parse(product_types));
-          project_details["created_by"] = created_by;
+          project_details["updated_by"] = updated_by;
           project_details["created_at"] = created_at;
+          project_details["updated_at"] = last_updated_at;
           project_list.push(project_details);
         });
 
@@ -62,25 +63,25 @@ export const ProjectList = () => {
                       <th className="all">Project ID</th>
                       <th>Product Type(s)</th>
                       <th>Product ID(s)</th>
-                      <th>Created By</th>
-                      <th>Created At</th>
+                      <th>Updated By</th>
+                      <th>Last Updated</th>
                   </tr>
               </thead>
               <tbody>
               {
                 
-                projects.map(({project_id, product_ids, product_types, created_by,created_at }) => {
+                projects.map(({project_id, product_ids, product_types, created_at, updated_at, updated_by }) => {
                   return (
                     <tr key={project_id}>
                       <td><h5><Link to={`/projects/${project_id}`} className="text-body">{project_id}</Link></h5></td>
-                      <td>{product_types.map((element) => (
-                        <span key={element} className="ms-1 badge badge-primary-lighten">{element}</span>
+                      <td style={{"width": "25%"}}>{product_types.map((element) => (
+                        <span key={element} className="ms-1 font-12 badge badge-primary-lighten">{element}</span>
                       ))}</td>
-                      <td>{product_ids.map((element) => (
-                        <span key={element} className="ms-1 badge badge-primary-lighten">{element}</span>
+                      <td style={{"width": "25%"}}>{product_ids.map((element) => (
+                        <span key={element} className="ms-1 font-12 badge badge-primary-lighten">{element}</span>
                       ))}</td>
-                      <td>{created_by}</td>
-                      <td>{created_at}</td>
+                      <td>{updated_by}</td>
+                      <td>{updated_at? updated_at.split(" ")[0]: created_at.split(" ")[0]}</td>
                     </tr>
                   )
                 })

@@ -392,15 +392,19 @@ def get_all_required_products():
 def get_project_aggregation():
   try:
     query = """
-      select p.project_id, p.project_name, users.name created_by, p.created_at,
-      json_arrayagg(pml.product_id) as product_ids, 
+      select p.project_id, p.project_name, users.name updated_by, p.created_at,
+      p.last_updated_at, json_arrayagg(pml.product_id) as product_ids, 
       json_arrayagg(pml.product_type) as product_types
       from projects p
       join project_master_list pml
       on pml.project_id = p.project_id
-      join users on p.created_by = users.employee_id
+      join users on 
+      case 
+      	when p.last_updated_by is not null then p.last_updated_by = users.employee_id
+        when p.last_updated_by is null then p.created_by = users.employee_id
+      end
       group by p.project_id, p.project_name, p.created_by, users.name, p.created_at
-      order by p.created_at desc
+      order by p.last_updated_at desc
     """
     query_result = DBUtil().execute_query(query)
     result = query_result

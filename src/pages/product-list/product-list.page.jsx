@@ -61,11 +61,11 @@ export const ProductList = () => {
                   return (
                     <tr key={`${product_type}_${product_id}_${recieved_quantity}_${Math.floor(Math.random() * 10)}`}>
                       <td><h5>{`${product_type} - ${product_id}`}</h5></td>
-                      <td><span className={`ms-1 badge badge-primary-lighten`}>{project_name}</span></td>
-                      <td><span className={`ms-1 badge badge-primary-lighten`}>{po_number}</span></td>
-                      <td><span className={`ms-1 badge badge-primary-lighten`}>{challan_id}</span></td>
-                      <td><span className={`ms-1 badge badge-${status.toUpperCase() === 'ACCEPTED'? "success": "danger"}-lighten`}>{`${recieved_quantity} ${quantity_type||""}`}</span></td>
-                      <td><span className={`ms-1 badge badge-${status.toUpperCase() === 'ACCEPTED'? "success": "danger"}-lighten`}>{status}</span></td>
+                      <td><span className={`ms-1 font-12 badge badge-primary-lighten`}>{project_name}</span></td>
+                      <td><span className={`ms-1 font-12 badge badge-primary-lighten`}>{po_number}</span></td>
+                      <td><span className={`ms-1 font-12 badge badge-primary-lighten`}>{challan_id}</span></td>
+                      <td><span className={`ms-1 font-12 badge badge-${status.toUpperCase() === 'ACCEPTED'? "success": "danger"}-lighten`}>{`${recieved_quantity} ${quantity_type||""}`}</span></td>
+                      <td><span className={`ms-1 font-12 badge badge-${status.toUpperCase() === 'ACCEPTED'? "success": "danger"}-lighten`}>{status}</span></td>
                     </tr>
                   )
                 })
