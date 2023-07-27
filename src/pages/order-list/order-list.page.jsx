@@ -90,7 +90,7 @@ export const OrderList = () => {
                       {/* <td>{projects.map((element) => (
                         <span key={element} className="ms-1 badge badge-primary-lighten">{element}</span>
                       ))}</td> */}
-                      <td style={{"width": "25gi%"}}>{product_types.map((element) => (
+                      <td style={{"width": "25%"}}>{product_types.map((element) => (
                         <span key={element} className="ms-1 badge badge-primary-lighten">{element}</span>
                       ))}</td>
                       <td style={{"width": "25%"}}>{product_ids.map((element) => (
